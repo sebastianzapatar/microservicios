@@ -1,0 +1,39 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: apigateway
+
+  # Evita errores si no tienes Zipkin corriendo
+  zipkin:
+    enabled: false
+
+  cloud:
+    gateway:
+      routes:
+        - id: product-service-direct
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/products/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG

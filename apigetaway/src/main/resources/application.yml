@@ -13,11 +13,11 @@ spring:
     gateway:
       routes:
         - id: product-service-direct
-          uri: http://localhost:8084
+          uri: http://product-service:8084
           predicates:
             - Path=/api/products/**
         - id: order-service-direct
-          uri: http://localhost:8083
+          uri: http://order-service:8083
           predicates:
             - Path=/api/orders/**
 

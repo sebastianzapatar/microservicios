@@ -8,12 +8,12 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface ProductRepository extends JpaRepository<Product,Long> {
+public interface ProductRepository extends JpaRepository<Product, String> {
     @Query("SELECT p from products p WHERE p.active=true AND p.quantity>0 and " +
-            "LOWER(p.name) LIKE LOWER(CONCAT('%',:keyword,'%') )")//mi consulta personalizada
+            "LOWER(p.name) LIKE LOWER(CONCAT('%',:keyword,'%') )") // mi consulta personalizada
     List<Product> searchProducts(@Param("keyword") String keyword);
 
     Optional<Product> findByIdAndActiveTrue(String id);
+
     Optional<Product> findById(String id);
 }
-

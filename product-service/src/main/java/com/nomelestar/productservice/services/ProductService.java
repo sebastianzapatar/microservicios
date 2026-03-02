@@ -4,9 +4,12 @@ import com.nomelestar.productservice.dto.ProductRequest;
 import com.nomelestar.productservice.dto.ProductResponse;
 import com.nomelestar.productservice.models.Product;
 import com.nomelestar.productservice.repository.ProductRepository;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -15,6 +18,7 @@ import java.util.List;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final RabbitTemplate rabbitTemplate;
 
     private void productDTOtoEntity(Product product, ProductRequest dto) {
         product.setDescription(dto.description());
@@ -37,7 +41,7 @@ public class ProductService {
 
     public void delete(String id) {
         Product p1 = productRepository.findByIdAndActiveTrue(id).orElseThrow(
-                () -> new RuntimeException("Product not found"));
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
         productRepository.delete(p1);
 
     }
@@ -60,7 +64,7 @@ public class ProductService {
 
     public ProductResponse findByIdAndActiveTrue(String id) {
         Product p1 = productRepository.findByIdAndActiveTrue(id).orElseThrow(
-                () -> new RuntimeException("Product not found"));
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
         return mapToResponse(p1);
     }
 
@@ -68,12 +72,28 @@ public class ProductService {
         Product product = new Product();
         productDTOtoEntity(product, request);
         Product savedProduct = productRepository.save(product);
+
+        com.nomelestar.productservice.events.ProductCreatedEvent event = com.nomelestar.productservice.events.ProductCreatedEvent
+                .builder()
+                .id(savedProduct.getId())
+                .name(savedProduct.getName())
+                .description(savedProduct.getDescription())
+                .price(savedProduct.getPrice())
+                .quantity(savedProduct.getQuantity())
+                .category(savedProduct.getCategory())
+                .build();
+
+        rabbitTemplate.convertAndSend(
+                com.nomelestar.productservice.config.RabbitMQConfig.EXCHANGE_NAME,
+                com.nomelestar.productservice.config.RabbitMQConfig.ROUTING_KEY,
+                event);
+
         return mapToResponse(savedProduct);
     }
 
     public ProductResponse update(String id, ProductRequest request) {
         Product product = productRepository.findByIdAndActiveTrue(id).orElseThrow(
-                () -> new RuntimeException("Product not found"));
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
         productDTOtoEntity(product, request);
         Product updatedProduct = productRepository.save(product);
         return mapToResponse(updatedProduct);
@@ -81,9 +101,9 @@ public class ProductService {
 
     public void updateQuantity(String id, Integer quantity) {
         Product product = productRepository.findByIdAndActiveTrue(id).orElseThrow(
-                () -> new RuntimeException("Product not found"));
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
         if (product.getQuantity() < quantity) {
-            throw new RuntimeException("Insufficient product quantity");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient product quantity");
         }
         product.setQuantity(product.getQuantity() - quantity);
         productRepository.save(product);

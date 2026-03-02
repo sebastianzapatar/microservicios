@@ -8,6 +8,9 @@ import com.nomelestar.orderservice.models.Order;
 import com.nomelestar.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+import feign.FeignException;
 
 import java.util.UUID;
 
@@ -20,12 +23,19 @@ public class OrderService {
 
     public OrderResponse createOrder(OrderRequest request) {
         // 1. Verify product exists and quantity is sufficient
-        ProductResponse product = productClient.getProductById(request.productId());
+        ProductResponse product;
+        try {
+            product = productClient.getProductById(request.productId());
+        } catch (FeignException.NotFound e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found");
+        }
+
         if (product == null) {
-            throw new RuntimeException("Product not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found");
         }
         if (product.quantity() < request.quantity()) {
-            throw new RuntimeException("Insufficient stock for product " + product.name());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Insufficient stock for product " + product.name());
         }
 
         // 2. Reduce product stock

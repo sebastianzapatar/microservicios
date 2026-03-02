@@ -1,7 +1,6 @@
 package com.nomelestar.productservice.controller;
 
 import com.nomelestar.productservice.dto.ProductResponse;
-import com.nomelestar.productservice.models.Product;
 import com.nomelestar.productservice.services.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +41,7 @@ public class ProductController {
         return ResponseEntity.ok(productService.update(id, request));
     }
 
-    @org.springframework.web.bind.annotation.PatchMapping("/{id}/quantity")
+    @org.springframework.web.bind.annotation.PutMapping("/{id}/quantity")
     public ResponseEntity<Void> updateQuantity(@PathVariable String id,
             @org.springframework.web.bind.annotation.RequestParam Integer quantity) {
         productService.updateQuantity(id, quantity);

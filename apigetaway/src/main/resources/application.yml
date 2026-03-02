@@ -12,12 +12,12 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: product-service-direct
-          uri: http://product-service:8084
+        - id: product-service
+          uri: http://localhost:8084
           predicates:
             - Path=/api/products/**
-        - id: order-service-direct
-          uri: http://order-service:8083
+        - id: order-service
+          uri: http://localhost:8083
           predicates:
             - Path=/api/orders/**
 

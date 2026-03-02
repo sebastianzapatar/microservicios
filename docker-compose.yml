@@ -1,0 +1,111 @@
+
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: mcv_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - microservices-net
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  serversc:
+    build:
+      context: ./serversc
+      dockerfile: Dockerfile
+    container_name: serversc
+    ports:
+      - "8888:8888"
+    networks:
+      - microservices-net
+
+  eureka:
+    build:
+      context: ./eureka
+      dockerfile: Dockerfile
+    container_name: eureka
+    ports:
+      - "8761:8761"
+    networks:
+      - microservices-net
+    depends_on:
+      - serversc
+
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    container_name: product-service
+    ports:
+      - "8084:8084"
+    networks:
+      - microservices-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      serversc:
+        condition: service_started
+      eureka:
+        condition: service_started
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/products
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+      - SPRING_CONFIG_IMPORT=configserver:http://serversc:8888
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    ports:
+      - "8083:8083"
+    networks:
+      - microservices-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      serversc:
+        condition: service_started
+      eureka:
+        condition: service_started
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/orders
+      - PRODUCT-SERVICE_URL=http://product-service:8084
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+      - SPRING_CONFIG_IMPORT=configserver:http://serversc:8888
+
+  apigetaway:
+    build:
+      context: ./apigetaway
+      dockerfile: Dockerfile
+    container_name: apigetaway
+    ports:
+      - "8089:8089"
+    networks:
+      - microservices-net
+    depends_on:
+      serversc:
+        condition: service_started
+      eureka:
+        condition: service_started
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+
+volumes:
+  postgres_data:
+
+
+networks:
+  microservices-net:
+    driver: bridge

@@ -4,7 +4,7 @@ import com.nomelestar.productservice.dto.ProductRequest;
 import com.nomelestar.productservice.dto.ProductResponse;
 import com.nomelestar.productservice.models.Product;
 import com.nomelestar.productservice.repository.ProductRepository;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ import java.util.List;
 public class ProductService {
 
     private final ProductRepository productRepository;
-    private final RabbitTemplate rabbitTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     private void productDTOtoEntity(Product product, ProductRequest dto) {
         product.setDescription(dto.description());
@@ -83,9 +83,9 @@ public class ProductService {
                 .category(savedProduct.getCategory())
                 .build();
 
-        rabbitTemplate.convertAndSend(
-                com.nomelestar.productservice.config.RabbitMQConfig.EXCHANGE_NAME,
-                com.nomelestar.productservice.config.RabbitMQConfig.ROUTING_KEY,
+        kafkaTemplate.send(
+                com.nomelestar.productservice.config.KafkaConfig.TOPIC_NAME,
+                event.getId(), // Use product ID as the Kafka partitioning key
                 event);
 
         return mapToResponse(savedProduct);
@@ -96,6 +96,22 @@ public class ProductService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
         productDTOtoEntity(product, request);
         Product updatedProduct = productRepository.save(product);
+
+        com.nomelestar.productservice.events.ProductUpdatedEvent event = com.nomelestar.productservice.events.ProductUpdatedEvent
+                .builder()
+                .id(updatedProduct.getId())
+                .name(updatedProduct.getName())
+                .description(updatedProduct.getDescription())
+                .price(updatedProduct.getPrice())
+                .quantity(updatedProduct.getQuantity())
+                .category(updatedProduct.getCategory())
+                .build();
+
+        kafkaTemplate.send(
+                com.nomelestar.productservice.config.KafkaConfig.UPDATED_TOPIC_NAME,
+                event.getId(),
+                event);
+
         return mapToResponse(updatedProduct);
     }
 
@@ -106,7 +122,22 @@ public class ProductService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient product quantity");
         }
         product.setQuantity(product.getQuantity() - quantity);
-        productRepository.save(product);
+        Product updatedProduct = productRepository.save(product);
+
+        com.nomelestar.productservice.events.ProductUpdatedEvent event = com.nomelestar.productservice.events.ProductUpdatedEvent
+                .builder()
+                .id(updatedProduct.getId())
+                .name(updatedProduct.getName())
+                .description(updatedProduct.getDescription())
+                .price(updatedProduct.getPrice())
+                .quantity(updatedProduct.getQuantity())
+                .category(updatedProduct.getCategory())
+                .build();
+
+        kafkaTemplate.send(
+                com.nomelestar.productservice.config.KafkaConfig.UPDATED_TOPIC_NAME,
+                event.getId(),
+                event);
     }
 
 }

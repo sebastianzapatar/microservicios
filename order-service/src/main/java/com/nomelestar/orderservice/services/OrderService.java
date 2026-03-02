@@ -12,6 +12,10 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import feign.FeignException;
 
+import org.springframework.kafka.core.KafkaTemplate;
+import com.nomelestar.orderservice.events.OrderCreatedEvent;
+import com.nomelestar.orderservice.config.KafkaConfig;
+
 import java.util.UUID;
 
 @Service
@@ -20,6 +24,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductClient productClient;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public OrderResponse createOrder(OrderRequest request) {
         // 1. Verify product exists and quantity is sufficient
@@ -49,6 +54,16 @@ public class OrderService {
         order.setTotalPrice(product.price() * request.quantity());
 
         Order savedOrder = orderRepository.save(order);
+
+        OrderCreatedEvent event = OrderCreatedEvent.builder()
+                .id(savedOrder.getId())
+                .orderNumber(savedOrder.getOrderNumber())
+                .productId(savedOrder.getProductId())
+                .quantity(savedOrder.getQuantity())
+                .totalPrice(savedOrder.getTotalPrice())
+                .build();
+
+        kafkaTemplate.send(KafkaConfig.ORDER_CREATED_TOPIC_NAME, event.getOrderNumber(), event);
 
         return mapToResponse(savedOrder);
     }

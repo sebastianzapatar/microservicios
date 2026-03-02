@@ -18,16 +18,34 @@ services:
       timeout: 5s
       retries: 5
 
-  rabbitmq:
-    image: rabbitmq:3.13-management
-    container_name: mcv_rabbitmq
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: mcv_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - microservices-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: mcv_kafka
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "9092:9092"
+      - "29092:29092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
       - microservices-net
     healthcheck:
-      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -41,6 +59,11 @@ services:
       - "8888:8888"
     networks:
       - microservices-net
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:8888/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   eureka:
     build:
@@ -51,8 +74,6 @@ services:
       - "8761:8761"
     networks:
       - microservices-net
-    depends_on:
-      - serversc
 
   product-service:
     build:
@@ -66,15 +87,15 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      rabbitmq:
+      kafka:
         condition: service_healthy
       serversc:
-        condition: service_started
+        condition: service_healthy
       eureka:
         condition: service_started
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/products
-      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
       - SPRING_CONFIG_IMPORT=configserver:http://serversc:8888
 
@@ -90,16 +111,16 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      rabbitmq:
+      kafka:
         condition: service_healthy
       serversc:
-        condition: service_started
+        condition: service_healthy
       eureka:
         condition: service_started
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/orders
       - PRODUCT-SERVICE_URL=http://product-service:8084
-      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
       - SPRING_CONFIG_IMPORT=configserver:http://serversc:8888
 
@@ -114,7 +135,7 @@ services:
       - microservices-net
     depends_on:
       serversc:
-        condition: service_started
+        condition: service_healthy
       eureka:
         condition: service_started
     environment:

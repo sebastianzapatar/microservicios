@@ -65,6 +65,42 @@ services:
       timeout: 5s
       retries: 5
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1.2 # Or whichever latest stable version
+    container_name: keycloak
+    command: start-dev
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "9090:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - microservices-net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "exec 3<>/dev/tcp/127.0.1/8080;echo -e \"GET /health/ready HTTP/1.1\r
+
+            host: http://localhost\r
+
+            Connection: close\r
+
+            \r
+
+            \" >&3;grep \"200 OK\" <&3"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   eureka:
     build:
       context: ./eureka
@@ -137,6 +173,8 @@ services:
       serversc:
         condition: service_healthy
       eureka:
+        condition: service_started
+      keycloak:
         condition: service_started
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/

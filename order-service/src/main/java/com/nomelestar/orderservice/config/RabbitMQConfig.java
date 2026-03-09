@@ -15,6 +15,7 @@ public class RabbitMQConfig {
     public static final String EXCHANGE_NAME = "product.exchange";
     public static final String QUEUE_NAME = "order.product.created";
     public static final String ROUTING_KEY = "product.created";
+    public static final String ORDER_ROUTING_KEY = "order.created";
 
     @Bean
     public TopicExchange exchange() {

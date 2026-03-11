@@ -1,0 +1,35 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # Namespace (apply first)
+  - namespace.yaml
+
+  # Infrastructure
+  - postgres/postgres-secret.yaml
+  - postgres/postgres-pvc.yaml
+  - postgres/postgres-statefulset.yaml
+  - postgres/postgres-service.yaml
+
+  - zookeeper/zookeeper-deployment.yaml
+  - zookeeper/zookeeper-service.yaml
+
+  - kafka/kafka-deployment.yaml
+  - kafka/kafka-service.yaml
+
+  # Config & Discovery
+  - serversc/serversc-deployment.yaml
+  - serversc/serversc-service.yaml
+
+  - eureka/eureka-deployment.yaml
+  - eureka/eureka-service.yaml
+
+  # Microservices
+  - product-service/product-service-deployment.yaml
+  - product-service/product-service-service.yaml
+
+  - order-service/order-service-deployment.yaml
+  - order-service/order-service-service.yaml
+
+  - apigetaway/apigetaway-deployment.yaml
+  - apigetaway/apigetaway-service.yaml

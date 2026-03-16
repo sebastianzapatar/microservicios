@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          env:
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "postgres"
+            - name: POSTGRES_DB
+              value: "products" # The config server expects both 'products', 'orders', 'users' but basic postgres only creates one per init. 
+                            # We might need a custom init script or just rely on JPA to create schemas if the DB exists.
+                            # For simplicity we'll create the main DB here, JPA update will handle table creation.
+          ports:
+            - containerPort: 5432

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eureka
+  labels:
+    app: eureka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eureka
+  template:
+    metadata:
+      labels:
+        app: eureka
+    spec:
+      containers:
+        - name: eureka
+          # Asegúrate de haber subido tu imagen de Eureka previamente
+          image: eureka:latest
+          # o tu ECR: 123456789.dkr.ecr.us-east-1.amazonaws.com/eureka:latest
+          ports:
+            - containerPort: 8761

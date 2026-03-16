@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - postgres/postgres-deployment.yaml
+  - postgres/postgres-service.yaml
+  - eureka/eureka-deployment.yaml
+  - eureka/eureka-service.yaml
+  - serversc/serversc-deployment.yaml
+  - serversc/serversc-service.yaml
+  - order-service/order-service-deployment.yaml
+  - order-service/order-service-service.yaml
+  - product-service/product-service-deployment.yaml
+  - product-service/product-service-service.yaml
+  - apigateway/apigateway-deployment.yaml
+  - apigateway/apigateway-service.yaml

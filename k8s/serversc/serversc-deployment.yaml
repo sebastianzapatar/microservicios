@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: serversc
+  labels:
+    app: serversc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: serversc
+  template:
+    metadata:
+      labels:
+        app: serversc
+    spec:
+      containers:
+        - name: serversc
+          image: serversc:latest
+          ports:
+            - containerPort: 8888

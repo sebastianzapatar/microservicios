@@ -43,8 +43,6 @@ public class OrderService {
                     "Insufficient stock for product " + product.name());
         }
 
-        // 2. Reduce product stock
-        productClient.updateProductQuantity(request.productId(), request.quantity());
 
         // 3. Save the Order
         Order order = new Order();
@@ -63,7 +61,8 @@ public class OrderService {
                 .totalPrice(savedOrder.getTotalPrice())
                 .build();
 
-        kafkaTemplate.send(KafkaConfig.ORDER_CREATED_TOPIC_NAME, event.getOrderNumber(), event);
+        kafkaTemplate.send(KafkaConfig.ORDER_CREATED_TOPIC_NAME,
+                event.getOrderNumber(), event);
 
         return mapToResponse(savedOrder);
     }

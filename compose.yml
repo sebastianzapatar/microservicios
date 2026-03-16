@@ -140,6 +140,9 @@ services:
         condition: service_started
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+      - PRODUCT_SERVICE_URL=http://product-service:8084
+      - ORDER_SERVICE_URL=http://order-service:8083
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=*
 
 volumes:
   postgres_data:

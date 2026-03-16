@@ -24,6 +24,10 @@ spec:
               value: "http://eureka:8761/eureka/"
             - name: SPRING_CONFIG_IMPORT
               value: "configserver:http://serversc:8888"
+            - name: PRODUCT_SERVICE_URL
+              value: "http://product-service:8084"
+            - name: ORDER_SERVICE_URL
+              value: "http://order-service:8083"
           readinessProbe:
             httpGet:
               path: /actuator/health

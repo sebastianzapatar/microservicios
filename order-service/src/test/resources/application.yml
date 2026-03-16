@@ -3,10 +3,9 @@ spring:
     config:
       enabled: false
   datasource:
-    url: jdbc:h2:mem:testdb
-    driverClassName: org.h2.Driver
-    username: sa
-    password: password
+    url: jdbc:postgresql://localhost:5433/orders_test
+    username: postgres
+    password: ""
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
 eureka:

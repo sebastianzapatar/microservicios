@@ -19,6 +19,9 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 8084
+          envFrom:
+            - secretRef:
+                name: postgres-secret
           env:
             - name: SPRING_DATASOURCE_URL
               value: "jdbc:postgresql://postgres:5432/products"

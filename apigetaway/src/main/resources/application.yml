@@ -11,15 +11,17 @@ spring:
 
   cloud:
     gateway:
-      routes:
-        - id: product-service
-          uri: http://localhost:8084
-          predicates:
-            - Path=/api/products/**
-        - id: order-service
-          uri: http://localhost:8083
-          predicates:
-            - Path=/api/orders/**
+      server:
+        webflux:
+          routes:
+            - id: product-service
+              uri: lb://product-service
+              predicates:
+                - Path=/api/products/**
+            - id: order-service
+              uri: lb://order-service
+              predicates:
+                - Path=/api/orders/**
 
 eureka:
   client:
@@ -32,7 +34,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway
+        include: "*"
   endpoint:
     health:
       show-details: always

@@ -19,7 +19,8 @@ public class OrderEventListener {
     public void handleOrderCreatedEvent(OrderCreatedEvent event) {
         log.info("Received OrderCreatedEvent - productId: {}, quantity: {}", event.getProductId(), event.getQuantity());
         try {
-            productService.updateQuantity(event.getProductId(), event.getQuantity());
+            productService.
+                    updateQuantity(event.getProductId(), event.getQuantity());
             log.info("Successfully updated product quantity for productId: {}", event.getProductId());
         } catch (Exception e) {
             log.error("Failed to update product quantity for productId: {}", event.getProductId(), e);

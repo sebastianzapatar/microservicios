@@ -53,10 +53,12 @@ public class OrderService {
 
         // 3. Reduce product stock asynchronously via RabbitMQ
         OrderCreatedEvent event = OrderCreatedEvent.builder()
-                .productId(request.productId())
+                 .productId(request.productId())
                 .quantity(request.quantity())
                 .build();
-        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ORDER_ROUTING_KEY, event);
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME,
+                RabbitMQConfig.ORDER_ROUTING_KEY,
+                event);
 
         return mapToResponse(savedOrder);
     }

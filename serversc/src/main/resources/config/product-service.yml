@@ -17,7 +17,7 @@ spring:
       properties:
         spring.json.trusted.packages: "com.nomelestar.*"
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/products}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/products}
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver

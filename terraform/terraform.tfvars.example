@@ -1,0 +1,23 @@
+# Copy this file to terraform.tfvars and fill in your values
+# NEVER commit terraform.tfvars to Git (it's in .gitignore)
+
+aws_region   = "us-east-1"
+project_name = "microservices"
+environment  = "dev"
+
+# VPC
+vpc_cidr             = "10.0.0.0/16"
+availability_zones   = ["us-east-1a", "us-east-1b"]
+public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
+private_subnet_cidrs = ["10.0.10.0/24", "10.0.11.0/24"]
+
+# RDS PostgreSQL
+db_instance_class    = "db.t3.micro"
+db_username          = "postgres"
+db_password          = "CHANGE_ME_STRONG_PASSWORD_MIN_8"
+db_allocated_storage = 20
+
+# ECS
+ecs_task_cpu           = 512
+ecs_task_memory        = 1024
+services_desired_count = 1

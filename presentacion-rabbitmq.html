@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RabbitMQ & Microservicios - Universidad EIA STEAM School</title>
+    
+    <!-- Fuentes premium de Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ==========================================================================
+           1. SISTEMA DE DISEÑO (Variables basadas en EIA STEAM School)
+           ========================================================================== */
+        :root {
+            --color-bg-dark: #0a1128;      /* Azul oscuro profundo premium */
+            --color-primary: #1840f4;      /* Azul Rey EIA */
+            --color-secondary: #21b8d2;    /* Azul Turquesa / Celeste */
+            --color-mint: #00dbc2;         /* Verde Menta / Turquesa vibrante */
+            --color-peach: #ffbc7d;        /* Durazno / Naranja suave */
+            --color-coral: #ec6551;        /* Coral / Naranja-rojo */
+            --color-white: #ffffff;
+            --color-gray-light: #e1e8f0;
+            --color-gray-dark: #7a8b9e;
+            
+            --font-title: 'Outfit', 'Poppins', sans-serif;
+            --font-body: 'Poppins', sans-serif;
+            
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* ==========================================================================
+           2. ESTILOS GENERALES Y MAQUETACIÓN
+           ========================================================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--color-bg-dark);
+            color: var(--color-white);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        /* Fondo dinámico animado */
+        .background-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .glow-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+            animation: floatGlow 15s infinite alternate ease-in-out;
+        }
+
+        .glow-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--color-primary);
+            top: -10%;
+            left: -10%;
+        }
+
+        .glow-2 {
+            width: 450px;
+            height: 450px;
+            background: var(--color-mint);
+            bottom: -10%;
+            right: -10%;
+            animation-delay: 5s;
+        }
+
+        .glow-3 {
+            width: 300px;
+            height: 300px;
+            background: var(--color-peach);
+            top: 30%;
+            right: 30%;
+            opacity: 0.08;
+            animation-delay: 3s;
+        }
+
+        @keyframes floatGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-30px, 50px) scale(1.1); }
+        }
+
+        /* Barra de progreso superior */
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.05);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-mint));
+            transition: width 0.3s ease-out;
+        }
+
+        /* Header e Identidad Visual (EIA STEAM) */
+        header {
+            width: 100%;
+            padding: 24px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        .eia-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .eia-brand-name {
+            font-family: var(--font-title);
+            font-weight: 800;
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #ffffff 50%, var(--color-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .steam-badge {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(24, 64, 244, 0.3);
+        }
+
+        .presentation-title {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: var(--color-gray-dark);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Contenedor Principal de Diapositivas */
+        main {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            padding: 0 40px;
+            position: relative;
+        }
+
+        .slide-container {
+            width: 100%;
+            max-width: 1200px;
+            height: 75vh;
+            position: relative;
+        }
+
+        /* Diapositiva Base */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(30px);
+            transition: var(--transition-smooth);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* Estructura Interna de la Diapositiva */
+        .slide-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+            height: 100%;
+        }
+
+        .slide-full {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+        }
+
+        /* Tipografía Diapositivas */
+        .slide h1 {
+            font-family: var(--font-title);
+            font-size: 3.2rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--color-white), var(--color-gray-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .slide h2 {
+            font-family: var(--font-title);
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 24px;
+            color: var(--color-white);
+            position: relative;
+            display: inline-block;
+        }
+
+        .slide h2::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--color-secondary);
+            border-radius: 2px;
+        }
+
+        .slide-full h2::after {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .slide p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: var(--color-gray-light);
+            margin-bottom: 20px;
+        }
+
+        /* Listas y bullets premium */
+        ul.premium-list {
+            list-style: none;
+            margin-top: 16px;
+        }
+
+        ul.premium-list li {
+            position: relative;
+            padding-left: 32px;
+            margin-bottom: 16px;
+            font-size: 1.05rem;
+            line-height: 1.5;
+            color: var(--color-gray-light);
+        }
+
+        ul.premium-list li::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: var(--color-secondary);
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        ul.premium-list li strong {
+            color: var(--color-white);
+            font-weight: 600;
+        }
+
+        /* Tarjetas de Contenido (Glassmorphism) */
+        .glass-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--glass-shadow);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: var(--transition-smooth);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+        }
+
+        .diagram-container {
+            width: 100%;
+            height: 100%;
+            min-height: 350px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Pie de página con controles */
+        footer {
+            width: 100%;
+            padding: 24px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        .keyboard-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--color-gray-dark);
+            font-size: 0.85rem;
+        }
+
+        .key-cap {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--color-white);
+            box-shadow: 0 2px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .slide-counter {
+            font-family: var(--font-title);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--color-gray-dark);
+        }
+
+        .slide-counter span {
+            color: var(--color-secondary);
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-nav {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--color-white);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-nav:hover:not(:disabled) {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(24, 64, 244, 0.5);
+        }
+
+        .btn-nav:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Tablas Comparativas */
+        table.premium-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font-size: 0.95rem;
+        }
+
+        table.premium-table th {
+            font-family: var(--font-title);
+            font-weight: 700;
+            text-align: left;
+            padding: 14px 16px;
+            background: rgba(24, 64, 244, 0.2);
+            border-bottom: 2px solid var(--color-primary);
+            color: var(--color-white);
+        }
+
+        table.premium-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--color-gray-light);
+        }
+
+        table.premium-table tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+            color: var(--color-white);
+        }
+
+        /* Grid Caja */
+        .box-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            width: 100%;
+            margin-top: 16px;
+        }
+
+        .box-item {
+            padding: 24px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 4px solid var(--color-secondary);
+        }
+
+        .box-item.negativo {
+            border-left-color: var(--color-coral);
+        }
+
+        .box-item h3 {
+            font-family: var(--font-title);
+            font-size: 1.25rem;
+            margin-bottom: 10px;
+            color: var(--color-white);
+        }
+
+        .box-item p {
+            font-size: 0.95rem;
+            margin-bottom: 0;
+            color: var(--color-gray-light);
+        }
+
+        /* Portada */
+        .cover-divider {
+            width: 120px;
+            height: 6px;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+            margin: 24px auto;
+            border-radius: 3px;
+        }
+
+        .highlight {
+            color: var(--color-mint);
+            font-weight: 600;
+        }
+
+        .highlight-blue {
+            color: var(--color-secondary);
+            font-weight: 600;
+        }
+
+        .highlight-orange {
+            color: var(--color-peach);
+            font-weight: 600;
+        }
+
+        /* ==========================================================================
+           3. ESTILOS DEL SIMULADOR INTERACTIVO (RABBITMQ)
+           ========================================================================== */
+        .sim-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1.8fr 1.1fr;
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+            align-items: stretch;
+            position: relative;
+        }
+
+        .sim-service {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .sim-broker-box {
+            background: rgba(33, 184, 210, 0.03);
+            border: 1px solid rgba(33, 184, 210, 0.15);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            z-index: 10;
+        }
+
+        .sim-header {
+            font-family: var(--font-title);
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sim-code {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.72rem;
+            color: var(--color-gray-light);
+            white-space: pre-wrap;
+            overflow-x: auto;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .sim-console {
+            background: #050a18;
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.72rem;
+            color: #a8ffb2;
+            height: 90px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.05);
+            line-height: 1.4;
+        }
+
+        .sim-btn {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            border: none;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(24, 64, 244, 0.2);
+            margin-bottom: 6px;
+        }
+
+        .sim-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(24, 64, 244, 0.4);
+        }
+
+        .sim-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .sim-exchange-row {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .sim-queue-row {
+            background: rgba(33, 184, 210, 0.05);
+            border: 1px solid rgba(33, 184, 210, 0.2);
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+
+        .sim-queue-title {
+            font-family: var(--font-title);
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--color-secondary);
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .sim-queue-bar {
+            height: 16px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 3px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            padding: 0 5px;
+            font-size: 0.65rem;
+            color: white;
+            transition: var(--transition-smooth);
+        }
+
+        .sim-queue-bar.active-q {
+            background: rgba(0, 219, 194, 0.2);
+            border: 1px solid var(--color-mint);
+        }
+
+        .sim-json-viewer {
+            background: #030815;
+            border-radius: 6px;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 0.72rem;
+            color: #ffbc7d;
+            height: 75px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-top: 5px;
+        }
+
+        /* Capa animada de paquetes */
+        .sim-animation-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .sim-packet {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            position: absolute;
+            opacity: 0;
+        }
+
+        .packet-blue {
+            background: var(--color-secondary);
+            box-shadow: 0 0 10px var(--color-secondary);
+        }
+
+        .packet-mint {
+            background: var(--color-mint);
+            box-shadow: 0 0 10px var(--color-mint);
+        }
+
+        /* Animaciones para flujos */
+        @keyframes sendAsync {
+            0% { left: 220px; top: 180px; opacity: 1; transform: scale(1); }
+            50% { left: 400px; top: 120px; opacity: 1; }
+            100% { left: 520px; top: 120px; opacity: 0; transform: scale(0.5); }
+        }
+
+        @keyframes receiveAsync {
+            0% { left: 580px; top: 120px; opacity: 0; transform: scale(0.5); }
+            10% { left: 580px; top: 120px; opacity: 1; transform: scale(1); }
+            100% { left: 900px; top: 180px; opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes rpcRequestSend {
+            0% { left: 220px; top: 180px; opacity: 1; }
+            100% { left: 500px; top: 120px; opacity: 0; }
+        }
+
+        @keyframes rpcRequestReceive {
+            0% { left: 500px; top: 120px; opacity: 0; }
+            10% { left: 500px; top: 120px; opacity: 1; }
+            100% { left: 900px; top: 180px; opacity: 1; }
+        }
+
+        @keyframes rpcResponseSend {
+            0% { left: 900px; top: 180px; opacity: 1; }
+            100% { left: 500px; top: 220px; opacity: 0; }
+        }
+
+        @keyframes rpcResponseReceive {
+            0% { left: 500px; top: 220px; opacity: 0; }
+            10% { left: 500px; top: 220px; opacity: 1; }
+            100% { left: 220px; top: 180px; opacity: 1; }
+        }
+
+        @media (max-width: 900px) {
+            .slide-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+                overflow-y: auto;
+            }
+            .slide h1 { font-size: 2.4rem; }
+            .slide h2 { font-size: 1.8rem; }
+            .diagram-container { min-height: 250px; }
+            .keyboard-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fondo de destellos fluidos -->
+    <div class="background-glow">
+        <div class="glow-circle glow-1"></div>
+        <div class="glow-circle glow-2"></div>
+        <div class="glow-circle glow-3"></div>
+    </div>
+
+    <!-- Barra de progreso de lectura superior -->
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Encabezado corporativo EIA STEAM -->
+    <header>
+        <div class="eia-logo-container">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="28" height="28" rx="6" fill="#1840f4" fill-opacity="0.1" stroke="#1840f4" stroke-width="2"/>
+                <path d="M7 23V9H12.5C13.8807 9 15 10.1193 15 11.5C15 12.8807 13.8807 14 12.5 14H9V17H13.5C14.8807 17 16 18.1193 16 19.5C16 20.8807 14.8807 22 13.5 22H9C7.89543 22 7 21.1046 7 20V23Z" fill="#21b8d2" fill-rule="evenodd" clip-rule="evenodd"/>
+                <path d="M17 9H25V12H22V23H19V12H17V9Z" fill="#ffffff"/>
+                <circle cx="25" cy="21" r="2" fill="#ffbc7d" />
+            </svg>
+            <span class="eia-brand-name">Universidad <span style="color: var(--color-secondary)">EIA</span></span>
+            <span class="steam-badge">STEAM SCHOOL</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div class="presentation-title" id="currentTopic">RabbitMQ y AMQP</div>
+            <a href="index.html" style="text-decoration: none; color: var(--color-white); background: rgba(255,255,255,0.06); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--glass-border); transition: var(--transition-smooth); display: flex; align-items: center; gap: 6px;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                Inicio
+            </a>
+        </div>
+    </header>
+
+    <!-- Área de Diapositivas -->
+    <main>
+        <div class="slide-container">
+
+            <!-- SLIDE 1: PORTADA -->
+            <div class="slide active" data-topic="Introducción">
+                <div class="slide-full">
+                    <span class="steam-badge" style="margin-bottom: 16px;">PRESENTACIÓN ACADÉMICA</span>
+                    <h1 style="font-size: 3.6rem;">RabbitMQ y la Mensajería en Microservicios</h1>
+                    <p style="font-size: 1.3rem; max-width: 750px; color: var(--color-gray-light);">
+                        El protocolo AMQP, arquitecturas basadas en colas y el patrón de comunicación Request-Response (Síncrono).
+                    </p>
+                    <div class="cover-divider"></div>
+                    <p style="font-size: 1rem; color: var(--color-mint); font-family: var(--font-title); font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">
+                        Escuela de Ciencia, Tecnología, Ingeniería, Artes y Matemáticas (STEAM)
+                    </p>
+                    <p style="font-size: 0.9rem; color: var(--color-gray-dark); margin-top: 10px;">Universidad EIA | 2026</p>
+                </div>
+            </div>
+
+            <!-- SLIDE 2: ¿QUÉ ES RABBITMQ? -->
+            <div class="slide" data-topic="¿Qué es RabbitMQ?">
+                <div class="slide-grid">
+                    <div>
+                        <h2>¿Qué es RabbitMQ?</h2>
+                        <p>
+                            Es un broker de mensajería de código abierto y altamente popular que implementa de forma nativa el protocolo <span class="highlight-blue">AMQP (Advanced Message Queuing Protocol)</span>.
+                        </p>
+                        <p>
+                            Funciona bajo la filosofía de <strong>"Broker Inteligente y Consumidor Simple"</strong>, donde el servidor se encarga activamente de enrutar, ordenar y empujar (push) los mensajes hacia los consumidores.
+                        </p>
+                        <ul class="premium-list">
+                            <li><strong>Efímero por Diseño:</strong> Los mensajes son consumidos, confirmados (ACK) y eliminados de inmediato de las colas.</li>
+                            <li><strong>Entrega Push:</strong> Entrega activamente los mensajes a los consumidores conectados.</li>
+                            <li><strong>Flexibilidad total de ruteo:</strong> Usa enrutamiento avanzado a través de intercambios (Exchanges).</li>
+                        </ul>
+                    </div>
+                    <div class="diagram-container">
+                        <!-- DIAGRAMA CONCEPTUAL RABBITMQ -->
+                        <svg width="100%" height="320" viewBox="0 0 500 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Publisher -->
+                            <rect x="20" y="120" width="90" height="60" rx="8" fill="rgba(255, 188, 125, 0.1)" stroke="#ffbc7d" stroke-width="2" />
+                            <text x="65" y="155" fill="#ffffff" font-family="Poppins" font-size="12" text-anchor="middle">Publisher</text>
+
+                            <!-- RabbitMQ Broker box -->
+                            <rect x="150" y="40" width="200" height="220" rx="12" fill="rgba(33, 184, 210, 0.05)" stroke="#21b8d2" stroke-width="2" />
+                            <text x="250" y="65" fill="#ffffff" font-family="Outfit" font-size="14" text-anchor="middle" font-weight="bold">RABBITMQ BROKER</text>
+
+                            <!-- Exchange -->
+                            <circle cx="210" cy="150" r="25" fill="rgba(24, 64, 244, 0.2)" stroke="#1840f4" />
+                            <text x="210" y="154" fill="#ffffff" font-family="Poppins" font-size="9" text-anchor="middle">Exchange</text>
+
+                            <!-- Queue -->
+                            <rect x="275" y="125" width="60" height="50" rx="4" fill="rgba(0, 219, 194, 0.15)" stroke="#00dbc2" />
+                            <text x="305" y="150" fill="#ffffff" font-family="Poppins" font-size="9" text-anchor="middle">Queue</text>
+
+                            <!-- Consumer -->
+                            <rect x="390" y="120" width="90" height="60" rx="8" fill="rgba(33, 184, 210, 0.1)" stroke="#21b8d2" stroke-width="2" />
+                            <text x="435" y="155" fill="#ffffff" font-family="Poppins" font-size="12" text-anchor="middle">Consumer</text>
+
+                            <!-- Connectors -->
+                            <path d="M110 150 H 185" stroke="#ffbc7d" stroke-width="2" />
+                            <path d="M235 150 H 275" stroke="#1840f4" stroke-width="1.5" stroke-dasharray="3 3" />
+                            <path d="M335 150 H 390" stroke="#00dbc2" stroke-width="2" />
+                            
+                            <text x="147" y="140" fill="rgba(255,255,255,0.6)" font-family="Poppins" font-size="8">Publica</text>
+                            <text x="362" y="140" fill="rgba(255,255,255,0.6)" font-family="Poppins" font-size="8">Push</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 3: COMPONENTES CLAVES -->
+            <div class="slide" data-topic="Componentes AMQP">
+                <div class="slide-grid">
+                    <div>
+                        <h2>Los Pilares de AMQP</h2>
+                        <p>
+                            RabbitMQ desacopla a los emisores de los receptores usando un modelo estructurado de intermediación:
+                        </p>
+                        <ul class="premium-list">
+                            <li><strong>Exchange (Intercambio):</strong> El punto de entrada para los mensajes. Recibe el mensaje del productor y decide a qué colas enviarlo usando reglas de enrutamiento.</li>
+                            <li><strong>Queue (Cola):</strong> Estructuras de almacenamiento FIFO en memoria/disco que guardan temporalmente los mensajes hasta que el consumidor los procesa.</li>
+                            <li><strong>Binding (Enlace):</strong> La regla o "tubería" que conecta un Exchange a una Cola.</li>
+                            <li><strong>Routing Key:</strong> Una clave de enrutamiento colocada en la cabecera del mensaje usada por el Exchange para enrutar el mensaje de forma precisa.</li>
+                        </ul>
+                    </div>
+                    <div class="diagram-container">
+                        <!-- DIAGRAMA ENRUTAMIENTO DETALLADO -->
+                        <svg width="100%" height="320" viewBox="0 0 500 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Exchange -->
+                            <circle cx="90" cy="160" r="35" fill="rgba(24, 64, 244, 0.15)" stroke="#1840f4" stroke-width="2" />
+                            <text x="90" y="164" fill="#ffffff" font-family="Outfit" font-size="12" text-anchor="middle" font-weight="bold">Exchange</text>
+
+                            <!-- Bindings/Arrows -->
+                            <path d="M125 140 L 220 90" stroke="#ffbc7d" stroke-width="1.5" />
+                            <path d="M125 180 L 220 230" stroke="#00dbc2" stroke-width="1.5" />
+
+                            <text x="160" y="105" fill="#ffbc7d" font-family="Poppins" font-size="8" transform="rotate(-23, 160, 105)">Binding: product.created</text>
+                            <text x="160" y="210" fill="#00dbc2" font-family="Poppins" font-size="8" transform="rotate(23, 160, 210)">Binding: order.created</text>
+
+                            <!-- Queue 1 -->
+                            <rect x="220" y="60" width="110" height="50" rx="6" fill="rgba(255,255,255,0.03)" stroke="#ffffff" />
+                            <text x="275" y="85" fill="#ffffff" font-family="Poppins" font-size="10" text-anchor="middle">Queue: order.product</text>
+                            
+                            <!-- Queue 2 -->
+                            <rect x="220" y="210" width="110" height="50" rx="6" fill="rgba(255,255,255,0.03)" stroke="#ffffff" />
+                            <text x="275" y="235" fill="#ffffff" font-family="Poppins" font-size="10" text-anchor="middle">Queue: product.order</text>
+
+                            <!-- Consumers -->
+                            <rect x="380" y="60" width="100" height="50" rx="6" fill="rgba(33, 184, 210, 0.1)" stroke="#21b8d2" />
+                            <text x="430" y="88" fill="#ffffff" font-family="Poppins" font-size="10" text-anchor="middle">order-service</text>
+
+                            <rect x="380" y="210" width="100" height="50" rx="6" fill="rgba(33, 184, 210, 0.1)" stroke="#21b8d2" />
+                            <text x="430" y="238" fill="#ffffff" font-family="Poppins" font-size="10" text-anchor="middle">product-service</text>
+
+                            <!-- Queue to Consumer Connectors -->
+                            <path d="M330 85 H 380" stroke="#21b8d2" stroke-width="2" />
+                            <path d="M330 235 H 380" stroke="#21b8d2" stroke-width="2" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 4: TIPOS DE EXCHANGES -->
+            <div class="slide" data-topic="Tipos de Exchanges">
+                <div class="slide-full">
+                    <h2>Tipos de Exchanges en RabbitMQ</h2>
+                    <p style="margin-bottom: 24px;">La flexibilidad de ruteo de RabbitMQ radica en sus cuatro tipos de intercambios:</p>
+                    
+                    <div class="box-grid" style="max-width: 1000px; text-align: left;">
+                        <div class="box-item">
+                            <h3>✉️ Direct Exchange</h3>
+                            <p>Enruta el mensaje directamente a las colas cuyo enlace (Binding) coincide <strong>exactamente</strong> con la clave de enrutamiento (Routing Key) del mensaje.</p>
+                        </div>
+                        <div class="box-item">
+                            <h3>📢 Fanout Exchange</h3>
+                            <p>Ignora por completo la Routing Key y copia/transmite el mensaje a <strong>todas</strong> las colas enlazadas a él. Útil para patrones de publicación/suscripción masiva.</p>
+                        </div>
+                        <div class="box-item">
+                            <h3>🏷️ Topic Exchange</h3>
+                            <p>Enruta basándose en una coincidencia parcial mediante comodines. Permite enrutar con claves como <code>catalogo.ropa.camisas</code> utilizando comodines (<code>*</code> y <code>#</code>).</p>
+                        </div>
+                        <div class="box-item">
+                            <h3>🗂️ Headers Exchange</h3>
+                            <p>Ignora la Routing Key y utiliza los atributos de los encabezados (Headers) del mensaje AMQP para tomar decisiones complejas de filtrado.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 5: COMUNICACIÓN SÍNCRONA / RPC -->
+            <div class="slide" data-topic="Comunicación Síncrona">
+                <div class="slide-grid">
+                    <div>
+                        <h2>Comunicación Síncrona en RabbitMQ (RPC)</h2>
+                        <p>
+                            A diferencia de Apache Kafka (que es estrictamente asíncrono y desacoplado en el tiempo), RabbitMQ posee soporte nativo para **comunicación síncrona / bidireccional (Request-Response)** mediante el patrón **RPC**.
+                        </p>
+                        <p style="font-size: 0.95rem; color: var(--color-gray-dark);">
+                            Esto permite a un microservicio realizar una petición asíncrona pero bloquear su ejecución (síncrona) esperando la respuesta inmediata del otro extremo.
+                        </p>
+                        <ul class="premium-list">
+                            <li><strong>Reply-To Header:</strong> El productor indica en qué cola temporal (ej. <code>amq.gen-...</code>) espera la respuesta.</li>
+                            <li><strong>Correlation ID:</strong> Un identificador único asignado al mensaje que ayuda al emisor a emparejar la respuesta con la petición original.</li>
+                            <li><strong>Direct Reply-To:</strong> Mecanismo optimizado de RabbitMQ que evita crear y destruir colas físicas por cada petición.</li>
+                        </ul>
+                    </div>
+                    <div class="diagram-container">
+                        <!-- DIAGRAMA RPC SÍNCRONO -->
+                        <svg width="100%" height="320" viewBox="0 0 500 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Client -->
+                            <rect x="20" y="100" width="100" height="120" rx="8" fill="rgba(255, 188, 125, 0.05)" stroke="#ffbc7d" stroke-width="2" />
+                            <text x="70" y="125" fill="#ffbc7d" font-family="Outfit" font-size="11" text-anchor="middle" font-weight="bold">CLIENTE</text>
+                            <text x="70" y="145" fill="#ffffff" font-family="Poppins" font-size="9" text-anchor="middle">Bloquea &</text>
+                            <text x="70" y="160" fill="#ffffff" font-family="Poppins" font-size="9" text-anchor="middle">Espera</text>
+                            
+                            <!-- Server / Consumer -->
+                            <rect x="380" y="100" width="100" height="120" rx="8" fill="rgba(0, 219, 194, 0.05)" stroke="#00dbc2" stroke-width="2" />
+                            <text x="430" y="125" fill="#00dbc2" font-family="Outfit" font-size="11" text-anchor="middle" font-weight="bold">SERVIDOR</text>
+                            <text x="430" y="145" fill="#ffffff" font-family="Poppins" font-size="9" text-anchor="middle">Procesa &</text>
+                            <text x="430" y="160" fill="#ffffff" font-family="Poppins" font-size="9" text-anchor="middle">Responde</text>
+
+                            <!-- Cola de Peticiones (Request) -->
+                            <rect x="180" y="70" width="140" height="35" rx="4" fill="rgba(33, 184, 210, 0.1)" stroke="#21b8d2" />
+                            <text x="250" y="91" fill="#ffffff" font-family="Poppins" font-size="8" text-anchor="middle">Queue: rpc.requests</text>
+
+                            <!-- Cola Temporal Respuestas (Reply Queue) -->
+                            <rect x="180" y="210" width="140" height="35" rx="4" fill="rgba(33, 184, 210, 0.05)" stroke="#21b8d2" stroke-dasharray="3 3" />
+                            <text x="250" y="231" fill="#ffbc7d" font-family="Poppins" font-size="8" text-anchor="middle">Queue: amq.gen-reply</text>
+
+                            <!-- Paths -->
+                            <!-- Request flow -->
+                            <path d="M120 120 V 90 H 180" stroke="#ffbc7d" stroke-width="1.5" />
+                            <path d="M320 90 H 380 V 120" stroke="#ffbc7d" stroke-width="1.5" />
+                            <text x="250" y="60" fill="#ffbc7d" font-family="Poppins" font-size="8" text-anchor="middle">1. Request (Reply-To: amq.gen-reply)</text>
+
+                            <!-- Response flow -->
+                            <path d="M380 200 V 230 H 320" stroke="#00dbc2" stroke-width="1.5" />
+                            <path d="M180 230 H 120 V 200" stroke="#00dbc2" stroke-width="1.5" />
+                            <text x="250" y="260" fill="#00dbc2" font-family="Poppins" font-size="8" text-anchor="middle">2. Response (Correlation ID matches)</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 6: SIMULADOR INTERACTIVO -->
+            <div class="slide" data-topic="Simulación RabbitMQ">
+                <div class="slide-full" style="justify-content: flex-start; padding-top: 10px;">
+                    <h2 style="margin-bottom: 12px;">Simulación: Flujos de Trabajo en RabbitMQ</h2>
+                    <p style="margin-bottom: 20px; font-size: 0.95rem; max-width: 850px; text-align: center;">
+                        Ejecuta una comunicación asíncrona basada en eventos o un flujo síncrono Request-Response (RPC) utilizando las colas y exchanges de tu base de código.
+                    </p>
+
+                    <!-- Capa de animación -->
+                    <div class="sim-animation-layer" id="animationLayer">
+                        <div class="sim-packet" id="simPacket"></div>
+                    </div>
+
+                    <div class="sim-grid">
+                        
+                        <!-- Panel de Emisor (order-service) -->
+                        <div class="sim-service" id="orderServiceBlock">
+                            <div class="sim-header">
+                                <span style="color: var(--color-peach);">📦</span> order-service
+                            </div>
+                            <div>
+                                <div class="sim-code" id="orderCode">
+// Publicando Mensaje Asíncrono
+rabbitTemplate.convertAndSend(
+    "product.exchange", 
+    "product.created", 
+    event
+);
+                                </div>
+                                <div class="sim-console" id="orderConsole">
+[SYSTEM] Servicio de Órdenes listo...
+Esperando acción.
+                                </div>
+                            </div>
+                            <div style="margin-top: 8px;">
+                                <button class="sim-btn" id="btnSimAsync">1. Simular Evento Asíncrono</button>
+                                <button class="sim-btn" id="btnSimSync" style="background: linear-gradient(135deg, var(--color-coral), var(--color-peach))">2. Simular RPC Síncrono</button>
+                            </div>
+                        </div>
+
+                        <!-- Panel de RabbitMQ Broker -->
+                        <div class="sim-broker-box" id="kafkaBlock">
+                            <div class="sim-header" style="justify-content: center;">
+                                <span style="color: var(--color-secondary)">⚡</span> RabbitMQ (mcv_rabbitmq)
+                            </div>
+                            <div>
+                                <!-- Exchange -->
+                                <div class="sim-exchange-row">
+                                    <span style="font-size: 0.8rem; font-family: var(--font-title); font-weight: 700; color: var(--color-mint)">Exchange: product.exchange</span>
+                                </div>
+
+                                <!-- Cola 1 -->
+                                <div class="sim-queue-row">
+                                    <div class="sim-queue-title">
+                                        <span>Cola: order.product.created</span>
+                                        <span id="queueAsyncCount">Mensajes: 0</span>
+                                    </div>
+                                    <div class="sim-queue-bar" id="queueAsyncBar">Vacía</div>
+                                </div>
+
+                                <!-- Cola 2 (RPC) -->
+                                <div class="sim-queue-row" id="rpcQueueContainer" style="opacity: 0.4;">
+                                    <div class="sim-queue-title">
+                                        <span>Cola Temporal: amq.gen-reply-to</span>
+                                        <span id="queueSyncCount">Mensajes: 0</span>
+                                    </div>
+                                    <div class="sim-queue-bar" id="queueSyncBar">Inactiva</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Visor JSON -->
+                            <div>
+                                <span style="font-size: 0.72rem; font-family: var(--font-title); font-weight: 600; color: var(--color-gray-dark);">JSON payload transportado:</span>
+                                <div class="sim-json-viewer" id="jsonViewer">
+{}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Panel de Receptor (product-service) -->
+                        <div class="sim-service" id="productServiceBlock">
+                            <div class="sim-header">
+                                <span style="color: var(--color-mint);">🏷️</span> product-service
+                            </div>
+                            <div>
+                                <div class="sim-code" id="productCode">
+// @RabbitListener
+@RabbitListener(
+    queues = "order.product.created"
+)
+public void handleProductCreated(
+    ProductCreatedEvent event
+) {
+    // Procesar asíncronamente
+}
+                                </div>
+                                <div class="sim-console" id="productConsole">
+[SYSTEM] Servicio de Catálogo listo...
+Esperando acción.
+                                </div>
+                            </div>
+                            <div style="height: 40px;"></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 7: VENTAJAS DE RABBITMQ -->
+            <div class="slide" data-topic="Ventajas">
+                <div class="slide-full">
+                    <h2>Ventajas de RabbitMQ</h2>
+                    <p style="margin-bottom: 32px;">¿Por qué seleccionar RabbitMQ como broker de mensajería principal?</p>
+                    
+                    <div class="box-grid" style="max-width: 1000px;">
+                        <div class="box-item">
+                            <h3>🛠️ Enrutamiento Extremadamente Flexible</h3>
+                            <p>Permite configurar flujos complejos de direccionamiento de mensajes usando múltiples exchanges sin requerir código cliente complejo para filtrado.</p>
+                        </div>
+                        <div class="box-item">
+                            <h3>⏱️ Latencia Uniformemente Baja</h3>
+                            <p>Optimizado para procesar de manera veloz mensajes unitarios individuales, ideal para sistemas transaccionales instantáneos.</p>
+                        </div>
+                        <div class="box-item">
+                            <h3>🤝 Soporte Multilingüe y Multiprotocolo</h3>
+                            <p>Soporta protocolos estándar como AMQP 0-9-1, AMQP 1.0, MQTT, STOMP y HTTP mediante plug-ins integrados.</p>
+                        </div>
+                        <div class="box-item">
+                            <h3>🔄 Ciclos de Vida Controlados (TTL & Dead Letters)</h3>
+                            <p>Gestión avanzada de expiración de mensajes (Time-To-Live) y desvío automático de mensajes defectuosos a colas de reintento (DLX).</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 8: DESVENTAJAS DE RABBITMQ -->
+            <div class="slide" data-topic="Desventajas">
+                <div class="slide-full">
+                    <h2>Desventajas y Trade-offs</h2>
+                    <p style="margin-bottom: 32px;">Desafíos y limitaciones técnicas de utilizar RabbitMQ.</p>
+                    
+                    <div class="box-grid" style="max-width: 1000px;">
+                        <div class="box-item negativo">
+                            <h3>🗂️ Mensajería Destructiva (Sin Replay)</h3>
+                            <p>Cuando un mensaje es leído y confirmado (ACK), se elimina definitivamente. Es imposible volver a leer el historial de eventos para un nuevo microservicio.</p>
+                        </div>
+                        <div class="box-item negativo">
+                            <h3>📈 Limitaciones de Escalado Horizontal</h3>
+                            <p>A diferencia de los logs de particiones de Kafka, las colas de RabbitMQ residen por defecto en nodos únicos del clúster, lo que limita su escalado bajo cargas ultra-altas.</p>
+                        </div>
+                        <div class="box-item negativo">
+                            <h3>⚠️ Vulnerabilidad a la Caída de Consumidores</h3>
+                            <p>Si los consumidores caen y el emisor sigue publicando mensajes a alta velocidad, la memoria del broker se satura rápidamente ralentizando todo el clúster.</p>
+                        </div>
+                        <div class="box-item negativo">
+                            <h3>🧩 Falta de Persistencia en Memoria Infinita</h3>
+                            <p>Aunque permite guardar colas en disco, su almacenamiento no está optimizado para actuar como base de datos histórica de eventos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 9: TABLA COMPARATIVA KAFKA VS RABBITMQ -->
+            <div class="slide" data-topic="RabbitMQ vs Kafka">
+                <div class="slide-full">
+                    <h2>Tabla Comparativa Definitiva</h2>
+                    <p style="margin-bottom: 20px;">Diferencias entre el Broker Inteligente (RabbitMQ) y el Log de Eventos (Kafka).</p>
+                    
+                    <div class="glass-card" style="width: 100%; max-width: 1000px; padding: 20px;">
+                        <table class="premium-table">
+                            <thead>
+                                <tr>
+                                    <th>Criterio</th>
+                                    <th>RabbitMQ</th>
+                                    <th>Apache Kafka</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Filosofía básica</strong></td>
+                                    <td>Smart Broker, Dumb Consumer (La red decide)</td>
+                                    <td>Dumb Broker, Smart Consumer (El cliente decide)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Comportamiento del mensaje</strong></td>
+                                    <td>Efímero (Se elimina tras el consumo)</td>
+                                    <td><span class="highlight">Permanente (Persiste según configuración)</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estilo de Comunicación</strong></td>
+                                    <td><span class="highlight-blue">Soporta Asíncrono y Síncrono (RPC nativo)</span></td>
+                                    <td>Estrictamente Asíncrono (Event Logging)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Rendimiento máximo</strong></td>
+                                    <td>Decenas de miles de msg/s</td>
+                                    <td><span class="highlight">Millones de msg/s</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Event Replay (Relectura)</strong></td>
+                                    <td>No soportado</td>
+                                    <td><span class="highlight">Soportado de forma nativa</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Modelo de entrega</strong></td>
+                                    <td>Push (El servidor empuja al consumidor)</td>
+                                    <td>Pull (El cliente solicita registros)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 10: CONCLUSIÓN -->
+            <div class="slide" data-topic="Conclusiones">
+                <div class="slide-full">
+                    <h2>Resumen de Criterio de Diseño Académico</h2>
+                    <p style="margin-bottom: 32px;">Cuándo diseñar con RabbitMQ en tu arquitectura de microservicios.</p>
+                    
+                    <div class="slide-grid" style="max-width: 1000px; text-align: left;">
+                        <div class="glass-card" style="border-left: 5px solid var(--color-secondary);">
+                            <h3 style="font-family: var(--font-title); font-size: 1.4rem; margin-bottom: 12px; color: var(--color-secondary);">Selecciona RABBITMQ si tu proyecto requiere:</h3>
+                            <ul class="premium-list">
+                                <li><strong>Comunicación RPC Síncrona:</strong> Servicios que requieran bloquearse momentáneamente esperando un resultado directo de otro servicio asíncrono.</li>
+                                <li><strong>Rutas y Enrutamiento Complejos:</strong> Filtrar mensajes basados en múltiples atributos de cabecera o patrones dinámicos.</li>
+                                <li><strong>Colas de Tareas Tradicionales:</strong> Distribución óptima del trabajo entre múltiples workers donde cada tarea debe procesarse una sola vez.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="glass-card" style="border-left: 5px solid var(--color-mint);">
+                            <h3 style="font-family: var(--font-title); font-size: 1.4rem; margin-bottom: 12px; color: var(--color-mint);">Selecciona KAFKA si tu proyecto requiere:</h3>
+                            <ul class="premium-list">
+                                <li><strong>Event Sourcing estricto:</strong> Mantener una fuente única de verdad inmutable y auditable a lo largo del tiempo.</li>
+                                <li><strong>Procesamiento masivo de Streams:</strong> Procesar millones de métricas por segundo de dispositivos IoT o actividad web.</li>
+                                <li><strong>Múltiples suscriptores históricos:</strong> Nuevas aplicaciones que requieran re-procesar los mismos mensajes del último año.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <p style="margin-top: 32px; font-size: 0.95rem; color: var(--color-gray-dark);">
+                        Proyecto desarrollado bajo los lineamientos académicos de la Escuela de Ingeniería <span class="highlight-blue">STEAM School - Universidad EIA</span>
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Controles de Navegación -->
+    <footer>
+        <div class="keyboard-hint">
+            <span class="key-cap">←</span>
+            <span class="key-cap">→</span>
+            <span class="key-cap">Espacio</span>
+            <span>para navegar</span>
+        </div>
+        
+        <div class="slide-counter">
+            Diapositiva <span id="currentSlideNum">1</span> de <span id="totalSlidesNum">10</span>
+        </div>
+        
+        <div class="controls">
+            <button class="btn-nav" id="btnPrev" disabled aria-label="Anterior">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </button>
+            <button class="btn-nav" id="btnNext" aria-label="Siguiente">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </button>
+        </div>
+    </footer>
+
+    <!-- Lógica de Navegación de Presentación -->
+    <script>
+        // Diapositivas
+        const slides = document.querySelectorAll('.slide');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+        const currentSlideNum = document.getElementById('currentSlideNum');
+        const totalSlidesNum = document.getElementById('totalSlidesNum');
+        const progressBar = document.getElementById('progressBar');
+        const currentTopic = document.getElementById('currentTopic');
+        
+        let currentSlideIndex = 0;
+        const totalSlides = slides.length;
+        
+        totalSlidesNum.textContent = totalSlides;
+
+        function updateSlideUI() {
+            slides.forEach((slide, index) => {
+                if (index === currentSlideIndex) {
+                    slide.classList.add('active');
+                    currentTopic.textContent = slide.getAttribute('data-topic');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            btnPrev.disabled = currentSlideIndex === 0;
+            btnNext.disabled = currentSlideIndex === totalSlides - 1;
+            currentSlideNum.textContent = currentSlideIndex + 1;
+
+            const progressPercentage = ((currentSlideIndex) / (totalSlides - 1)) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+        }
+
+        function nextSlide() {
+            if (currentSlideIndex < totalSlides - 1) {
+                currentSlideIndex++;
+                updateSlideUI();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                updateSlideUI();
+            }
+        }
+
+        btnNext.addEventListener('click', nextSlide);
+        btnPrev.addEventListener('click', prevSlide);
+
+        // Teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                currentSlideIndex = 0;
+                updateSlideUI();
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                currentSlideIndex = totalSlides - 1;
+                updateSlideUI();
+            }
+        });
+
+        // Swipe
+        let touchstartX = 0;
+        let touchendX = 0;
+        document.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
+        document.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            if (touchendX < touchstartX - 50) nextSlide();
+            if (touchendX > touchstartX + 50) prevSlide();
+        });
+
+        // ==========================================================================
+        // LÓGICA DEL SIMULADOR INTERACTIVO (SLIDE 6)
+        // ==========================================================================
+        const btnSimAsync = document.getElementById('btnSimAsync');
+        const btnSimSync = document.getElementById('btnSimSync');
+        const orderConsole = document.getElementById('orderConsole');
+        const productConsole = document.getElementById('productConsole');
+        const jsonViewer = document.getElementById('jsonViewer');
+        const queueAsyncBar = document.getElementById('queueAsyncBar');
+        const queueSyncBar = document.getElementById('queueSyncBar');
+        const queueAsyncCount = document.getElementById('queueAsyncCount');
+        const queueSyncCount = document.getElementById('queueSyncCount');
+        const rpcQueueContainer = document.getElementById('rpcQueueContainer');
+        const orderCode = document.getElementById('orderCode');
+        const productCode = document.getElementById('productCode');
+        
+        const simPacket = document.getElementById('simPacket');
+        
+        let asyncMsgCount = 0;
+        let syncMsgCount = 0;
+
+        // SIMULACIÓN ASÍNCRONA
+        btnSimAsync.addEventListener('click', () => {
+            btnSimAsync.disabled = true;
+            btnSimSync.disabled = true;
+
+            // Cambiar códigos del recuadro
+            orderCode.innerHTML = `// Publicando Mensaje Asíncrono\nrabbitTemplate.convertAndSend(\n    "product.exchange", \n    "product.created", \n    event\n);`;
+            productCode.innerHTML = `// @RabbitListener\n@RabbitListener(\n    queues = "order.product.created"\n)\npublic void handleProductCreated(\n    ProductCreatedEvent event\n) {\n    // Procesar asíncronamente\n}`;
+
+            const prodId = "PROD-" + Math.floor(Math.random() * 800 + 200);
+            const prodName = "Teclado Mecánico";
+
+            orderConsole.innerHTML += `<br><span style="color:#ffbc7d">[INFO] Emisor envía evento de producto ${prodId} (Asíncrono)</span>`;
+            orderConsole.scrollTop = orderConsole.scrollHeight;
+
+            // Paquete viaja de Emisor a Exchange
+            simPacket.className = "sim-packet packet-blue";
+            simPacket.style.animation = "sendAsync 1.0s forwards";
+
+            setTimeout(() => {
+                // Llega a la cola asíncrona
+                asyncMsgCount++;
+                queueAsyncCount.textContent = `Mensajes: ${asyncMsgCount}`;
+                queueAsyncBar.classList.add('active-q');
+                queueAsyncBar.textContent = `Mensaje en Cola (${prodId})`;
+                
+                const eventPayload = {
+                    "id": prodId,
+                    "name": prodName,
+                    "price": 89.99,
+                    "quantity": 150
+                };
+                jsonViewer.textContent = JSON.stringify(eventPayload, null, 2);
+
+                orderConsole.innerHTML += `<br><span style="color:#00dbc2">[INFO] Mensaje encolado en 'order.product.created'. Hilo libre.</span>`;
+                orderConsole.scrollTop = orderConsole.scrollHeight;
+
+                // Paquete viaja de Cola a Receptor (Push)
+                simPacket.style.animation = "receiveAsync 1.0s forwards";
+
+                setTimeout(() => {
+                    asyncMsgCount--;
+                    queueAsyncCount.textContent = `Mensajes: ${asyncMsgCount}`;
+                    queueAsyncBar.classList.remove('active-q');
+                    queueAsyncBar.textContent = `Vacía`;
+
+                    productConsole.innerHTML += `<br><span style="color:#fff">[INFO] Evento recibido: ProductCreatedEvent - ID: ${prodId}</span>`;
+                    productConsole.innerHTML += `<br><span style="color:#a8ffb2">[INFO] Réplica de catálogo local actualizada exitosamente. ACK enviado.</span>`;
+                    productConsole.scrollTop = productConsole.scrollHeight;
+
+                    setTimeout(() => {
+                        btnSimAsync.disabled = false;
+                        btnSimSync.disabled = false;
+                    }, 500);
+
+                }, 1000);
+
+            }, 1000);
+        });
+
+        // SIMULACIÓN SÍNCRONA (RPC)
+        btnSimSync.addEventListener('click', () => {
+            btnSimAsync.disabled = true;
+            btnSimSync.disabled = true;
+            rpcQueueContainer.style.opacity = "1";
+
+            // Cambiar códigos del recuadro
+            orderCode.innerHTML = `// RPC Síncrono (Esperando respuesta)\nObject response = rabbitTemplate\n    .convertSendAndReceive(\n        "rpc.exchange", \n        "product.stock.req", \n        request\n    );\n// Hilo bloqueado hasta recibir response`;
+            productCode.innerHTML = `// Oyente RPC (Recibe y Responde)\n@RabbitListener(queues = "rpc.req")\npublic Integer getStock(String prodId) {\n    // Procesa y retorna respuesta\n    return productService\n        .getStock(prodId);\n}`;
+
+            const orderNum = "ORD-" + Math.floor(Math.random() * 8000 + 1000);
+            const productId = "PROD-102";
+
+            orderConsole.innerHTML += `<br><span style="color:#ec6551">[WAITING] Enviando petición RPC para verificar stock...</span>`;
+            orderConsole.innerHTML += `<br><span style="color:#ffbc7d">→ Hilo de ejecución bloqueado esperando respuesta en cola temporal...</span>`;
+            orderConsole.scrollTop = orderConsole.scrollHeight;
+
+            // 1. Envía Request
+            simPacket.className = "sim-packet packet-blue";
+            simPacket.style.animation = "rpcRequestSend 1.0s forwards";
+
+            setTimeout(() => {
+                const reqPayload = {
+                    "requestType": "GET_STOCK",
+                    "productId": productId,
+                    "orderNumber": orderNum,
+                    "replyTo": "amq.gen-reply-to"
+                };
+                jsonViewer.textContent = JSON.stringify(reqPayload, null, 2);
+
+                // 2. Servidor procesa
+                simPacket.style.animation = "rpcRequestReceive 1.0s forwards";
+
+                setTimeout(() => {
+                    productConsole.innerHTML += `<br><span style="color:#fff">[RPC] Petición recibida de stock para Producto: ${productId}</span>`;
+                    productConsole.innerHTML += `<br><span style="color:#ffbc7d">→ Consultando stock físico en base de datos...</span>`;
+                    productConsole.scrollTop = productConsole.scrollHeight;
+
+                    // Simular procesamiento del servidor
+                    setTimeout(() => {
+                        productConsole.innerHTML += `<br><span style="color:#a8ffb2">[RPC] Stock verificado: 45 unidades disponibles. Enviando respuesta...</span>`;
+                        productConsole.scrollTop = productConsole.scrollHeight;
+
+                        // 3. Envía Response a cola temporal
+                        simPacket.className = "sim-packet packet-mint";
+                        simPacket.style.animation = "rpcResponseSend 1.0s forwards";
+
+                        setTimeout(() => {
+                            syncMsgCount++;
+                            queueSyncCount.textContent = `Mensajes: ${syncMsgCount}`;
+                            queueSyncBar.classList.add('active-q');
+                            queueSyncBar.textContent = `Respuesta Encolada`;
+
+                            const respPayload = {
+                                "productId": productId,
+                                "stockAvailable": 45,
+                                "status": "APPROVED",
+                                "correlationId": "corr-uuid-xxxx"
+                            };
+                            jsonViewer.textContent = JSON.stringify(respPayload, null, 2);
+
+                            // 4. Cliente recibe Response y se desbloquea
+                            simPacket.style.animation = "rpcResponseReceive 1.0s forwards";
+
+                            setTimeout(() => {
+                                syncMsgCount--;
+                                queueSyncCount.textContent = `Mensajes: ${syncMsgCount}`;
+                                queueSyncBar.classList.remove('active-q');
+                                queueSyncBar.textContent = `Inactiva`;
+                                rpcQueueContainer.style.opacity = "0.4";
+
+                                orderConsole.innerHTML += `<br><span style="color:#a8ffb2">[SUCCESS] Respuesta de stock recibida! Stock: 45.</span>`;
+                                orderConsole.innerHTML += `<br><span style="color:#fff">→ Hilo desbloqueado. Procediendo a registrar orden ${orderNum} en base de datos.</span>`;
+                                orderConsole.scrollTop = orderConsole.scrollHeight;
+
+                                setTimeout(() => {
+                                    btnSimAsync.disabled = false;
+                                    btnSimSync.disabled = false;
+                                }, 500);
+
+                            }, 1000);
+
+                        }, 1000);
+
+                    }, 1200);
+
+                }, 1000);
+
+            }, 1000);
+        });
+
+        // Inicialización
+        updateSlideUI();
+    </script>
+</body>
+</html>

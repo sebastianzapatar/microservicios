@@ -24,10 +24,12 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductClient productClient;
+    // Plantilla de Kafka inyectada para enviar mensajes a los tópicos de Apache Kafka.
+    // La clave es un String (el número de orden para el particionado) y el valor es un objeto.
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public OrderResponse createOrder(OrderRequest request) {
-        // 1. Verify product exists and quantity is sufficient
+        // 1. Verificar que el producto exista y tenga cantidad suficiente en product-service
         ProductResponse product;
         try {
             product = productClient.getProductById(request.productId());
@@ -44,7 +46,7 @@ public class OrderService {
         }
 
 
-        // 3. Save the Order
+        // 3. Crear y guardar la entidad Order en la base de datos de órdenes
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
         order.setProductId(request.productId());
@@ -53,6 +55,7 @@ public class OrderService {
 
         Order savedOrder = orderRepository.save(order);
 
+        // 4. Construir el evento de creación de orden (OrderCreatedEvent) para la publicación asíncrona
         OrderCreatedEvent event = OrderCreatedEvent.builder()
                 .id(savedOrder.getId())
                 .orderNumber(savedOrder.getOrderNumber())
@@ -61,6 +64,10 @@ public class OrderService {
                 .totalPrice(savedOrder.getTotalPrice())
                 .build();
 
+        // 5. Enviar el evento al tópico de Kafka. 
+        // - Nombre del tópico: KafkaConfig.ORDER_CREATED_TOPIC_NAME ("order.created")
+        // - Clave de particionamiento: event.getOrderNumber() (garantiza que mensajes de la misma orden vayan a la misma partición y mantengan el orden)
+        // - Payload: el objeto event (serializado automáticamente a JSON)
         kafkaTemplate.send(KafkaConfig.ORDER_CREATED_TOPIC_NAME,
                 event.getOrderNumber(), event);
 

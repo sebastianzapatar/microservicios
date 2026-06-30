@@ -142,6 +142,22 @@ services:
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
 
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok
+    restart: unless-stopped
+    ports:
+      - "4040:4040" # ngrok dashboard
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    command:
+      - "http"
+      - "apigetaway:8089"
+    networks:
+      - microservices-net
+    depends_on:
+      - apigetaway
+
 volumes:
   postgres_data:
 

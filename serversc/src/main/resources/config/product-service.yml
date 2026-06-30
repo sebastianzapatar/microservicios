@@ -4,18 +4,37 @@ server:
 spring:
   application:
     name: product-service
+  # Configuración global de Apache Kafka para el servicio de productos (product-service).
+  # Nota: Dado que product-service define sus fábricas de productores/consumidores programáticamente
+  # en KafkaConfig.java para tener control total, estas propiedades actúan como valores de referencia.
   kafka:
+    # Servidores de Bootstrap de Kafka.
+    # En desarrollo local en la máquina host se usa localhost:29092.
+    # En Docker, la variable de entorno SPRING_KAFKA_BOOTSTRAP_SERVERS inyecta kafka:9092.
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    
+    # Configuración por defecto para los productores de Kafka.
     producer:
+      # Serializa las claves del mensaje a cadenas String.
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # Serializa el payload (valor) del mensaje a JSON.
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      
+    # Configuración por defecto para los consumidores de Kafka.
     consumer:
+      # ID del grupo de consumidores por defecto para este servicio.
       group-id: product-group
+      # Qué hacer cuando no hay un offset inicial (earliest: leer desde el principio del tópico).
       auto-offset-reset: earliest
+      # Clases deserializadoras por defecto.
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # Nota: En KafkaConfig.java usamos StringDeserializer con StringJacksonJsonMessageConverter
+      # para evitar excepciones de tipo de datos al recibir eventos de paquetes diferentes.
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
+        # Paquetes permitidos para la deserialización JSON (medida de seguridad).
         spring.json.trusted.packages: "com.nomelestar.*"
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/products}
     username: postgres

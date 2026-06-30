@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apache Kafka & Microservicios - Universidad EIA STEAM School</title>
+    
+    <!-- Fuentes premium de Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ==========================================================================
+           1. SISTEMA DE DISEÑO (Variables basadas en EIA STEAM School)
+           ========================================================================== */
+        :root {
+            /* Colores Principales de la Universidad EIA & STEAM */
+            --color-bg-dark: #0a1128;      /* Azul oscuro profundo premium */
+            --color-primary: #1840f4;      /* Azul Rey EIA */
+            --color-secondary: #21b8d2;    /* Azul Turquesa / Celeste */
+            --color-mint: #00dbc2;         /* Verde Menta / Turquesa vibrante */
+            --color-peach: #ffbc7d;        /* Durazno / Naranja suave */
+            --color-coral: #ec6551;        /* Coral / Naranja-rojo */
+            --color-white: #ffffff;
+            --color-gray-light: #e1e8f0;
+            --color-gray-dark: #7a8b9e;
+            
+            /* Fuentes */
+            --font-title: 'Outfit', 'Poppins', sans-serif;
+            --font-body: 'Poppins', sans-serif;
+            
+            /* Sombras y Efectos */
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* ==========================================================================
+           2. ESTILOS GENERALES Y MAQUETACIÓN
+           ========================================================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--color-bg-dark);
+            color: var(--color-white);
+            overflow: hidden; /* Evita scrolls incómodos en la presentación */
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        /* Fondo dinámico animado */
+        .background-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .glow-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+            animation: floatGlow 15s infinite alternate ease-in-out;
+        }
+
+        .glow-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--color-primary);
+            top: -10%;
+            right: -10%;
+        }
+
+        .glow-2 {
+            width: 450px;
+            height: 450px;
+            background: var(--color-mint);
+            bottom: -10%;
+            left: -10%;
+            animation-delay: 5s;
+        }
+
+        .glow-3 {
+            width: 300px;
+            height: 300px;
+            background: var(--color-peach);
+            top: 40%;
+            left: 30%;
+            opacity: 0.08;
+            animation-delay: 2s;
+        }
+
+        @keyframes floatGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 30px) scale(1.1); }
+        }
+
+        /* Barra de progreso superior */
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.05);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-mint));
+            transition: width 0.3s ease-out;
+        }
+
+        /* Header e Identidad Visual (EIA STEAM) */
+        header {
+            width: 100%;
+            padding: 24px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        .eia-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .eia-brand-name {
+            font-family: var(--font-title);
+            font-weight: 800;
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #ffffff 50%, var(--color-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .steam-badge {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(24, 64, 244, 0.3);
+        }
+
+        .presentation-title {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: var(--color-gray-dark);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Contenedor Principal de Diapositivas */
+        main {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            padding: 0 40px;
+            position: relative;
+        }
+
+        .slide-container {
+            width: 100%;
+            max-width: 1200px;
+            height: 75vh;
+            position: relative;
+        }
+
+        /* Diapositiva Base */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(30px);
+            transition: var(--transition-smooth);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* Estructura Interna de la Diapositiva */
+        .slide-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+            height: 100%;
+        }
+
+        .slide-full {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+        }
+
+        /* Tipografía Diapositivas */
+        .slide h1 {
+            font-family: var(--font-title);
+            font-size: 3.2rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--color-white), var(--color-gray-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .slide h2 {
+            font-family: var(--font-title);
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 24px;
+            color: var(--color-white);
+            position: relative;
+            display: inline-block;
+        }
+
+        .slide h2::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--color-mint);
+            border-radius: 2px;
+        }
+
+        .slide-full h2::after {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .slide p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: var(--color-gray-light);
+            margin-bottom: 20px;
+        }
+
+        /* Listas y bullets premium */
+        ul.premium-list {
+            list-style: none;
+            margin-top: 16px;
+        }
+
+        ul.premium-list li {
+            position: relative;
+            padding-left: 32px;
+            margin-bottom: 16px;
+            font-size: 1.05rem;
+            line-height: 1.5;
+            color: var(--color-gray-light);
+        }
+
+        ul.premium-list li::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: var(--color-mint);
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        ul.premium-list li strong {
+            color: var(--color-white);
+            font-weight: 600;
+        }
+
+        /* Tarjetas de Contenido (Glassmorphism) */
+        .glass-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--glass-shadow);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: var(--transition-smooth);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+        }
+
+        /* Diseños específicos de gráficos */
+        .diagram-container {
+            width: 100%;
+            height: 100%;
+            min-height: 350px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Pie de página con controles */
+        footer {
+            width: 100%;
+            padding: 24px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        .keyboard-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--color-gray-dark);
+            font-size: 0.85rem;
+        }
+
+        .key-cap {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--color-white);
+            box-shadow: 0 2px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .slide-counter {
+            font-family: var(--font-title);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--color-gray-dark);
+        }
+
+        .slide-counter span {
+            color: var(--color-mint);
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-nav {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--color-white);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-nav:hover:not(:disabled) {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(24, 64, 244, 0.5);
+        }
+
+        .btn-nav:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Tablas Comparativas */
+        table.premium-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font-size: 0.95rem;
+        }
+
+        table.premium-table th {
+            font-family: var(--font-title);
+            font-weight: 700;
+            text-align: left;
+            padding: 14px 16px;
+            background: rgba(24, 64, 244, 0.2);
+            border-bottom: 2px solid var(--color-primary);
+            color: var(--color-white);
+        }
+
+        table.premium-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--color-gray-light);
+        }
+
+        table.premium-table tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+            color: var(--color-white);
+        }
+
+        /* Ventajas y Desventajas Grid */
+        .box-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            width: 100%;
+            margin-top: 16px;
+        }
+
+        .box-item {
+            padding: 24px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 4px solid var(--color-mint);
+        }
+
+        .box-item.negativo {
+            border-left-color: var(--color-coral);
+        }
+
+        .box-item h3 {
+            font-family: var(--font-title);
+            font-size: 1.25rem;
+            margin-bottom: 10px;
+            color: var(--color-white);
+        }
+
+        .box-item p {
+            font-size: 0.95rem;
+            margin-bottom: 0;
+            color: var(--color-gray-light);
+        }
+
+        /* Diapositiva de Portada */
+        .cover-content {
+            max-width: 850px;
+        }
+
+        .cover-content h1 {
+            font-size: 4rem;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, var(--color-white) 30%, var(--color-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .cover-divider {
+            width: 120px;
+            height: 6px;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-mint));
+            margin: 24px 0;
+            border-radius: 3px;
+        }
+
+        .slide-full .cover-divider {
+            margin: 24px auto;
+        }
+
+        /* Estilo para destacar texto */
+        .highlight {
+            color: var(--color-mint);
+            font-weight: 600;
+        }
+
+        .highlight-blue {
+            color: var(--color-secondary);
+            font-weight: 600;
+        }
+
+        /* ==========================================================================
+           3. ESTILOS DEL SIMULADOR INTERACTIVO
+           ========================================================================== */
+        .sim-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1.8fr 1.1fr;
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+            align-items: stretch;
+            position: relative;
+        }
+
+        .sim-service {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .sim-broker-box {
+            background: rgba(24, 64, 244, 0.03);
+            border: 1px solid rgba(24, 64, 244, 0.15);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            z-index: 10;
+        }
+
+        .sim-header {
+            font-family: var(--font-title);
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sim-code {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.72rem;
+            color: var(--color-gray-light);
+            white-space: pre-wrap;
+            overflow-x: auto;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .sim-console {
+            background: #050a18;
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.72rem;
+            color: #a8ffb2;
+            height: 90px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.05);
+            line-height: 1.4;
+        }
+
+        .sim-btn {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            border: none;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(24, 64, 244, 0.2);
+        }
+
+        .sim-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(24, 64, 244, 0.4);
+        }
+
+        .sim-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .sim-topic-row {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+
+        .sim-topic-title {
+            font-family: var(--font-title);
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--color-mint);
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .sim-partitions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .sim-partition-cell {
+            flex-grow: 1;
+            height: 20px;
+            background: rgba(24, 64, 244, 0.15);
+            border: 1px solid rgba(24, 64, 244, 0.3);
+            border-radius: 3px;
+            font-size: 0.65rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: var(--transition-smooth);
+        }
+
+        .sim-partition-cell.active-p {
+            background: var(--color-mint);
+            border-color: var(--color-mint);
+            box-shadow: 0 0 10px rgba(0, 219, 194, 0.5);
+            color: var(--color-bg-dark);
+            font-weight: 700;
+        }
+
+        .sim-json-viewer {
+            background: #030815;
+            border-radius: 6px;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 0.72rem;
+            color: #ffbc7d;
+            height: 80px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-top: 10px;
+        }
+
+        /* Capa animada de paquetes */
+        .sim-animation-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .sim-packet {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            position: absolute;
+            opacity: 0;
+        }
+
+        .packet-orange {
+            background: var(--color-peach);
+            box-shadow: 0 0 10px var(--color-peach);
+        }
+
+        .packet-mint {
+            background: var(--color-mint);
+            box-shadow: 0 0 10px var(--color-mint);
+        }
+
+        /* Animaciones clave */
+        @keyframes sendOrder {
+            0% { left: 220px; top: 180px; opacity: 1; transform: scale(1); }
+            50% { left: 400px; top: 120px; opacity: 1; }
+            100% { left: 520px; top: 120px; opacity: 0; transform: scale(0.5); }
+        }
+
+        @keyframes receiveOrder {
+            0% { left: 580px; top: 120px; opacity: 0; transform: scale(0.5); }
+            10% { left: 580px; top: 120px; opacity: 1; transform: scale(1); }
+            100% { left: 900px; top: 180px; opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes sendProduct {
+            0% { left: 900px; top: 180px; opacity: 1; transform: scale(1); }
+            50% { left: 720px; top: 220px; opacity: 1; }
+            100% { left: 580px; top: 220px; opacity: 0; transform: scale(0.5); }
+        }
+
+        @keyframes receiveProduct {
+            0% { left: 520px; top: 220px; opacity: 0; transform: scale(0.5); }
+            10% { left: 520px; top: 220px; opacity: 1; transform: scale(1); }
+            100% { left: 220px; top: 180px; opacity: 1; transform: scale(1); }
+        }
+
+        /* Controles táctiles adicionales / Responsive */
+        @media (max-width: 900px) {
+            .slide-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+                overflow-y: auto;
+            }
+            .slide h1 { font-size: 2.4rem; }
+            .slide h2 { font-size: 1.8rem; }
+            .diagram-container { min-height: 250px; }
+            .keyboard-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fondo de destellos fluidos -->
+    <div class="background-glow">
+        <div class="glow-circle glow-1"></div>
+        <div class="glow-circle glow-2"></div>
+        <div class="glow-circle glow-3"></div>
+    </div>
+
+    <!-- Barra de progreso de lectura superior -->
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Encabezado corporativo EIA STEAM -->
+    <header>
+        <div class="eia-logo-container">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Logotipo vectorial representativo estilo STEAM / Universidad EIA -->
+                <rect x="2" y="2" width="28" height="28" rx="6" fill="#1840f4" fill-opacity="0.1" stroke="#1840f4" stroke-width="2"/>
+                <path d="M7 23V9H12.5C13.8807 9 15 10.1193 15 11.5C15 12.8807 13.8807 14 12.5 14H9V17H13.5C14.8807 17 16 18.1193 16 19.5C16 20.8807 14.8807 22 13.5 22H9C7.89543 22 7 21.1046 7 20V23Z" fill="#00dbc2" fill-rule="evenodd" clip-rule="evenodd"/>
+                <path d="M17 9H25V12H22V23H19V12H17V9Z" fill="#ffffff"/>
+                <circle cx="25" cy="21" r="2" fill="#ffbc7d" />
+            </svg>
+            <span class="eia-brand-name">Universidad <span style="color: var(--color-mint)">EIA</span></span>
+            <span class="steam-badge">STEAM SCHOOL</span>
+        </div>
+        <div class="presentation-title" id="currentTopic">Arquitectura Orientada a Eventos</div>
+    </header>
+
+    <!-- Área de Diapositivas -->
+    <main>
+        <div class="slide-container">
+
+            <!-- SLIDE 1: PORTADA -->
+            <div class="slide active" data-topic="Introducción">
+                <div class="slide-full">
+                    <span class="steam-badge" style="margin-bottom: 16px;">PRESENTACIÓN ACADÉMICA</span>
+                    <h1 style="font-size: 3.6rem;">Apache Kafka y la Arquitectura Orientada a Eventos</h1>
+                    <p style="font-size: 1.3rem; max-width: 750px; color: var(--color-gray-light);">
+                        Cómo implementar una infraestructura de comunicación asíncrona, robusta y desacoplada para microservicios.
+                    </p>
+                    <div class="cover-divider"></div>
+                    <p style="font-size: 1rem; color: var(--color-secondary); font-family: var(--font-title); font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">
+                        Escuela de Ciencia, Tecnología, Ingeniería, Artes y Matemáticas (STEAM)
+                    </p>
+                    <p style="font-size: 0.9rem; color: var(--color-gray-dark); margin-top: 10px;">Universidad EIA | 2026</p>
+                </div>
+            </div>
+
+            <!-- SLIDE 2: ¿QUÉ ES EDA? -->
+            <div class="slide" data-topic="Arquitectura Orientada a Eventos (EDA)">
+                <div class="slide-grid">
+                    <div>
+                        <h2>Arquitectura Orientada a Eventos (EDA)</h2>
+                        <p>
+                            Es un paradigma de diseño de software donde la comunicación entre microservicios se realiza a través de la producción, detección y consumo de <span class="highlight">Eventos</span> (cambios significativos de estado).
+                        </p>
+                        <ul class="premium-list">
+                            <li><strong>Desacoplamiento Absoluto:</strong> El productor del evento no sabe quién consume el mensaje, ni cuántos consumidores existen.</li>
+                            <li><strong>Procesamiento en Tiempo Real:</strong> Reacción inmediata ante acciones del usuario o del sistema.</li>
+                            <li><strong>Resiliencia Mejorada:</strong> Si un consumidor falla, los eventos se almacenan en el bus y se procesan al recuperarse.</li>
+                        </ul>
+                    </div>
+                    <div class="diagram-container">
+                        <!-- DIAGRAMA INTERACTIVO SVG: EDA -->
+                        <svg width="100%" height="320" viewBox="0 0 500 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Productores -->
+                            <rect x="20" y="30" width="110" height="60" rx="10" fill="rgba(255, 188, 125, 0.1)" stroke="#ffbc7d" stroke-width="2" />
+                            <text x="75" y="65" fill="#ffffff" font-family="Poppins" font-size="12" text-anchor="middle" font-weight="500">Order Service</text>
+                            
+                            <rect x="20" y="210" width="110" height="60" rx="10" fill="rgba(255, 188, 125, 0.1)" stroke="#ffbc7d" stroke-width="2" />
+                            <text x="75" y="245" fill="#ffffff" font-family="Poppins" font-size="12" text-anchor="middle" font-weight="500">Product Service</text>
+                            
+                            <!-- Bus de Eventos (Kafka) -->
+                            <rect x="190" y="55" width="120" height="190" rx="16" fill="rgba(24, 64, 244, 0.15)" stroke="#1840f4" stroke-width="2" />
+                            <text x="250" y="90" fill="#ffffff" font-family="Outfit" font-size="15" text-anchor="middle" font-weight="bold">EVENT BUS</text>
+                            <text x="250" y="110" fill="#21b8d2" font-family="Outfit" font-size="12" text-anchor="middle" font-weight="600">Apache Kafka</text>
+                            
+                            <!-- Tópico Canal -->
+                            <rect x="205" y="140" width="90" height="35" rx="6" fill="rgba(0, 219, 194, 0.15)" stroke="#00dbc2" stroke-width="1" />
+                            <text x="250" y="162" fill="#00dbc2" font-family="Poppins" font-size="10" text-anchor="middle">Tópicos de Eventos</text>
+                            
+                            <!-- Consumidores -->
+                            <rect x="370" y="30" width="110" height="60" rx="10" fill="rgba(33, 184, 210, 0.1)" stroke="#21b8d2" stroke-width="2" />
+                            <text x="425" y="65" fill="#ffffff" font-family="Poppins" font-size="12" text-anchor="middle" font-weight="500">Notificaciones</text>
+                            
+                            <rect x="370" y="120" width="110" height="60" rx="10" fill="rgba(33, 184, 210, 0.1)" stroke="#21b8d2" stroke-width="2" />
+                            <text x="425" y="155" fill="#ffffff" font-family="Poppins" font-size="12" text-anchor="middle" font-weight="500">Stock Manager</text>
+                            
+                            <rect x="370" y="210" width="110" height="60" rx="10" fill="rgba(33, 184, 210, 0.1)" stroke="#21b8d2" stroke-width="2" />
+                            <text x="425" y="245" fill="#ffffff" font-family="Poppins" font-size="12" text-anchor="middle" font-weight="500">Analytics</text>
+                            
+                            <!-- Flujos / Flechas -->
+                            <path d="M130 60 H 190" stroke="#ffbc7d" stroke-width="2" stroke-dasharray="4 4"/>
+                            <path d="M130 240 H 190" stroke="#ffbc7d" stroke-width="2" stroke-dasharray="4 4"/>
+                            
+                            <path d="M310 90 H 370" stroke="#21b8d2" stroke-width="2" />
+                            <path d="M310 150 H 370" stroke="#21b8d2" stroke-width="2" />
+                            <path d="M310 210 H 370" stroke="#21b8d2" stroke-width="2" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 3: ¿QUÉ ES KAFKA Y CONCEPTOS? -->
+            <div class="slide" data-topic="Conceptos de Kafka">
+                <div class="slide-grid">
+                    <div>
+                        <h2>¿Qué es Apache Kafka?</h2>
+                        <p>
+                            Es una plataforma distribuida de streaming de eventos basada en un <span class="highlight">Commit Log (registro de compromisos) inmutable</span>.
+                        </p>
+                        <p style="font-size: 0.95rem; color: var(--color-gray-dark);">
+                            A diferencia de las colas tradicionales, Kafka funciona como una cinta de grabación donde los eventos se escriben de manera secuencial y no se eliminan al ser leídos.
+                        </p>
+                        <ul class="premium-list" style="margin-top: 10px;">
+                            <li><strong>Topic (Tópico):</strong> Categoría o canal donde se almacenan los eventos (ej. <code>order.created</code>).</li>
+                            <li><strong>Partition (Partición):</strong> Subdivisión de un tópico para paralelismo y escalabilidad.</li>
+                            <li><strong>Offset:</strong> ID secuencial único asignado a cada evento dentro de una partición.</li>
+                        </ul>
+                    </div>
+                    <div class="diagram-container">
+                        <!-- DIAGRAMA INTERACTIVO SVG: PARTITION LOG & OFFSETS -->
+                        <svg width="100%" height="320" viewBox="0 0 500 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <text x="250" y="30" fill="#ffffff" font-family="Outfit" font-size="14" text-anchor="middle" font-weight="600">Representación de una Partición de Tópico</text>
+                            
+                            <!-- Bloques de Log -->
+                            <!-- Offset 0 -->
+                            <rect x="30" y="100" width="50" height="50" rx="6" fill="#1840f4" stroke="#ffffff" stroke-width="1" />
+                            <text x="55" y="125" fill="#ffffff" font-family="Outfit" font-size="12" text-anchor="middle" font-weight="bold">Off 0</text>
+                            <text x="55" y="142" fill="#00dbc2" font-family="Poppins" font-size="8" text-anchor="middle">Event A</text>
+                            
+                            <!-- Offset 1 -->
+                            <rect x="90" y="100" width="50" height="50" rx="6" fill="#1840f4" stroke="#ffffff" stroke-width="1" />
+                            <text x="115" y="125" fill="#ffffff" font-family="Outfit" font-size="12" text-anchor="middle" font-weight="bold">Off 1</text>
+                            <text x="115" y="142" fill="#00dbc2" font-family="Poppins" font-size="8" text-anchor="middle">Event B</text>
+                            
+                            <!-- Offset 2 -->
+                            <rect x="150" y="100" width="50" height="50" rx="6" fill="#1840f4" stroke="#ffffff" stroke-width="1" />
+                            <text x="175" y="125" fill="#ffffff" font-family="Outfit" font-size="12" text-anchor="middle" font-weight="bold">Off 2</text>
+                            <text x="175" y="142" fill="#00dbc2" font-family="Poppins" font-size="8" text-anchor="middle">Event C</text>
+                            
+                            <!-- Offset 3 -->
+                            <rect x="210" y="100" width="50" height="50" rx="6" fill="#1840f4" stroke="#ffffff" stroke-width="1" />
+                            <text x="235" y="125" fill="#ffffff" font-family="Outfit" font-size="12" text-anchor="middle" font-weight="bold">Off 3</text>
+                            <text x="235" y="142" fill="#00dbc2" font-family="Poppins" font-size="8" text-anchor="middle">Event D</text>
+                            
+                            <!-- Offset 4 -->
+                            <rect x="270" y="100" width="50" height="50" rx="6" fill="rgba(24, 64, 244, 0.3)" stroke="rgba(255, 255, 255, 0.3)" stroke-width="1" />
+                            <text x="295" y="125" fill="rgba(255,255,255,0.5)" font-family="Outfit" font-size="12" text-anchor="middle" font-weight="bold">Off 4</text>
+                            <text x="295" y="142" fill="rgba(0, 219, 194, 0.5)" font-family="Poppins" font-size="8" text-anchor="middle">Event E</text>
+                            
+                            <!-- Offset 5 -->
+                            <rect x="330" y="100" width="50" height="50" rx="6" fill="rgba(24, 64, 244, 0.1)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" stroke-dasharray="3 3"/>
+                            <text x="355" y="130" fill="rgba(255,255,255,0.2)" font-family="Outfit" font-size="12" text-anchor="middle">Vacío</text>
+                            
+                            <!-- Flecha Escritura (Productor) -->
+                            <path d="M430 125 H 390" stroke="#ffbc7d" stroke-width="2" marker-end="url(#arrow)" />
+                            <text x="435" y="129" fill="#ffbc7d" font-family="Poppins" font-size="11" font-weight="bold">Productor (Escribe al final)</text>
+                            
+                            <!-- Puntero del Consumidor 1 (offset 1) -->
+                            <path d="M115 210 V 160" stroke="#21b8d2" stroke-width="2" marker-end="url(#arrow-blue)" />
+                            <text x="115" y="230" fill="#21b8d2" font-family="Poppins" font-size="10" text-anchor="middle" font-weight="bold">Consumidor A (Grupo 1)</text>
+                            <text x="115" y="245" fill="#21b8d2" font-family="Poppins" font-size="9" text-anchor="middle">Offset actual: 1</text>
+                            
+                            <!-- Puntero del Consumidor 2 (offset 3) -->
+                            <path d="M235 210 V 160" stroke="#00dbc2" stroke-width="2" marker-end="url(#arrow-mint)" />
+                            <text x="235" y="230" fill="#00dbc2" font-family="Poppins" font-size="10" text-anchor="middle" font-weight="bold">Consumidor B (Grupo 2)</text>
+                            <text x="235" y="245" fill="#00dbc2" font-family="Poppins" font-size="9" text-anchor="middle">Offset actual: 3</text>
+                            
+                            <!-- Definición de marcadores -->
+                            <defs>
+                                <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#ffbc7d"/>
+                                </marker>
+                                <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#21b8d2"/>
+                                </marker>
+                                <marker id="arrow-mint" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#00dbc2"/>
+                                </marker>
+                            </defs>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 4: PRODUCTORES, BROKERS Y CONSUMIDORES -->
+            <div class="slide" data-topic="Componentes Clave">
+                <div class="slide-grid">
+                    <div>
+                        <h2>Componentes Clave: Los Tres Pilares</h2>
+                        <p>
+                            Para entender el flujo de datos en Kafka, debemos comprender la relación entre sus tres actores fundamentales:
+                        </p>
+                        <ul class="premium-list">
+                            <li><strong>Producer (Productor):</strong> Aplicaciones cliente (como nuestro <code>OrderService</code>) que crean y envían eventos a tópicos específicos en Kafka. Ellos deciden a qué tópico escribir y bajo qué clave particionar para distribuir la carga.</li>
+                            <li><strong>Broker (Servidor de Kafka):</strong> Nodos físicos o contenedores del clúster de Kafka (como <code>mcv_kafka</code> en nuestro docker-compose). Reciben los eventos de los productores, los escriben de forma inmutable en el disco duro y se los entregan a los consumidores. Además, gestionan la replicación de datos.</li>
+                            <li><strong>Consumer (Consumidor):</strong> Aplicaciones cliente (como nuestro <code>ProductEventListener</code>) que leen eventos de los tópicos para procesarlos de manera asíncrona.</li>
+                        </ul>
+                    </div>
+                    <div class="diagram-container">
+                        <!-- DIAGRAMA INTERACTIVO SVG: PRODUCER - BROKER - CONSUMER -->
+                        <svg width="100%" height="320" viewBox="0 0 500 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Producers Box -->
+                            <rect x="20" y="80" width="110" height="150" rx="12" fill="rgba(255, 188, 125, 0.05)" stroke="#ffbc7d" stroke-width="2" />
+                            <text x="75" y="105" fill="#ffbc7d" font-family="Outfit" font-size="13" text-anchor="middle" font-weight="bold">PRODUCERS</text>
+                            <circle cx="75" cy="145" r="18" fill="rgba(255, 188, 125, 0.2)" />
+                            <text x="75" y="149" fill="#ffffff" font-family="Poppins" font-size="10" text-anchor="middle">Envían</text>
+                            <text x="75" y="200" fill="rgba(255,255,255,0.7)" font-family="Poppins" font-size="9" text-anchor="middle">Escriben Eventos</text>
+                            
+                            <!-- Brokers Box (Cluster) -->
+                            <rect x="190" y="40" width="120" height="230" rx="16" fill="rgba(24, 64, 244, 0.1)" stroke="#1840f4" stroke-width="2" />
+                            <text x="250" y="65" fill="#ffffff" font-family="Outfit" font-size="14" text-anchor="middle" font-weight="bold">KAFKA CLUSTER</text>
+                            
+                            <!-- Broker 1 -->
+                            <rect x="205" y="90" width="90" height="35" rx="6" fill="rgba(33, 184, 210, 0.15)" stroke="#21b8d2" />
+                            <text x="250" y="112" fill="#ffffff" font-family="Poppins" font-size="10" text-anchor="middle">Broker 1</text>
+                            
+                            <!-- Broker 2 -->
+                            <rect x="205" y="140" width="90" height="35" rx="6" fill="rgba(33, 184, 210, 0.15)" stroke="#21b8d2" />
+                            <text x="250" y="162" fill="#ffffff" font-family="Poppins" font-size="10" text-anchor="middle">Broker 2</text>
+                            
+                            <!-- Broker 3 -->
+                            <rect x="205" y="190" width="90" height="35" rx="6" fill="rgba(33, 184, 210, 0.15)" stroke="#21b8d2" />
+                            <text x="250" y="212" fill="#ffffff" font-family="Poppins" font-size="10" text-anchor="middle">Broker 3</text>
+                            
+                            <text x="250" y="252" fill="rgba(255,255,255,0.5)" font-family="Poppins" font-size="8" text-anchor="middle">Persistencia y Replicación</text>
+
+                            <!-- Consumers Box -->
+                            <rect x="370" y="80" width="110" height="150" rx="12" fill="rgba(0, 219, 194, 0.05)" stroke="#00dbc2" stroke-width="2" />
+                            <text x="425" y="105" fill="#00dbc2" font-family="Outfit" font-size="13" text-anchor="middle" font-weight="bold">CONSUMERS</text>
+                            <circle cx="425" cy="145" r="18" fill="rgba(0, 219, 194, 0.2)" />
+                            <text x="425" y="149" fill="#ffffff" font-family="Poppins" font-size="10" text-anchor="middle">Leen</text>
+                            <text x="425" y="200" fill="rgba(255,255,255,0.7)" font-family="Poppins" font-size="9" text-anchor="middle">Procesan Asíncrono</text>
+
+                            <!-- Arrows -->
+                            <!-- Producer to Broker -->
+                            <path d="M130 155 H 190" stroke="#ffbc7d" stroke-width="2" marker-end="url(#arrow)" />
+                            <!-- Broker to Consumer -->
+                            <path d="M310 155 H 370" stroke="#00dbc2" stroke-width="2" marker-end="url(#arrow-mint)" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 5: SIMULADOR INTERACTIVO -->
+            <div class="slide" data-topic="Simulador del Proyecto">
+                <div class="slide-full" style="justify-content: flex-start; padding-top: 10px;">
+                    <h2 style="margin-bottom: 12px;">Simulación del Flujo de Eventos del Proyecto</h2>
+                    <p style="margin-bottom: 20px; font-size: 0.95rem; max-width: 850px; text-align: center;">
+                        Interactúa con los microservicios de tu base de código para ver cómo se comunican a través de los tópicos <code>order.created</code> y <code>product.created</code>.
+                    </p>
+
+                    <!-- Capa para partículas animadas -->
+                    <div class="sim-animation-layer" id="animationLayer">
+                        <div class="sim-packet" id="simPacket"></div>
+                    </div>
+
+                    <div class="sim-grid">
+                        
+                        <!-- Panel de Order Service (order-service) -->
+                        <div class="sim-service" id="orderServiceBlock">
+                            <div class="sim-header">
+                                <span style="color: var(--color-peach);">📦</span> order-service
+                            </div>
+                            <div>
+                                <div class="sim-code" id="orderCode">
+// Publicando Evento
+var event = OrderCreatedEvent.builder()
+    .orderNumber("ORD-9843")
+    .productId("PROD-102")
+    .quantity(2)
+    .totalPrice(150.0).build();
+
+kafkaTemplate.send("order.created", event);
+                                </div>
+                                <div class="sim-console" id="orderConsole">
+[SYSTEM] Servicio de Órdenes listo...
+Esperando acción.
+                                </div>
+                            </div>
+                            <button class="sim-btn" id="btnSimOrder">1. Simular "Crear Orden"</button>
+                        </div>
+
+                        <!-- Panel de Kafka Broker (mcv_kafka) -->
+                        <div class="sim-broker-box" id="kafkaBlock">
+                            <div class="sim-header" style="justify-content: center;">
+                                <span style="color: var(--color-mint)">⚡</span> Apache Kafka (mcv_kafka)
+                            </div>
+                            <div>
+                                <!-- Tópico 1 -->
+                                <div class="sim-topic-row">
+                                    <div class="sim-topic-title">
+                                        <span>Tópico: order.created</span>
+                                        <span id="offsetOrder" style="color: var(--color-gray-dark)">Offset: 0</span>
+                                    </div>
+                                    <div class="sim-partitions">
+                                        <div class="sim-partition-cell" id="partOrder0">Part 0</div>
+                                    </div>
+                                </div>
+
+                                <!-- Tópico 2 -->
+                                <div class="sim-topic-row">
+                                    <div class="sim-topic-title">
+                                        <span>Tópico: product.created</span>
+                                        <span id="offsetProduct" style="color: var(--color-gray-dark)">Offset: 0</span>
+                                    </div>
+                                    <div class="sim-partitions">
+                                        <div class="sim-partition-cell" id="partProduct0">Part 0</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Visor JSON del Evento -->
+                            <div>
+                                <span style="font-size: 0.72rem; font-family: var(--font-title); font-weight: 600; color: var(--color-gray-dark);">JSON payload enviado al Broker:</span>
+                                <div class="sim-json-viewer" id="jsonViewer">
+{}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Panel de Product Service (product-service) -->
+                        <div class="sim-service" id="productServiceBlock">
+                            <div class="sim-header">
+                                <span style="color: var(--color-secondary);">🏷️</span> product-service
+                            </div>
+                            <div>
+                                <div class="sim-code" id="productCode">
+// @KafkaListener
+@KafkaListener(
+  topics = "order.created",
+  groupId = "product-group"
+)
+public void handleOrderCreated(
+  OrderCreatedEvent event
+) {
+  productService.updateQuantity(
+    event.getProductId(),
+    event.getQuantity()
+  );
+}
+                                </div>
+                                <div class="sim-console" id="productConsole">
+[SYSTEM] Servicio de Catálogo listo...
+Esperando acción.
+                                </div>
+                            </div>
+                            <button class="sim-btn" id="btnSimProduct" style="background: linear-gradient(135deg, var(--color-secondary), var(--color-mint))">2. Simular "Crear Producto"</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 6: VENTAJAS DE KAFKA -->
+            <div class="slide" data-topic="Ventajas de Kafka">
+                <div class="slide-full">
+                    <h2>Ventajas de Apache Kafka</h2>
+                    <p style="margin-bottom: 32px;">¿Por qué es la tecnología líder para la transmisión de eventos en tiempo real?</p>
+                    
+                    <div class="box-grid" style="max-width: 1000px;">
+                        <div class="box-item">
+                            <h3>🚀 Rendimiento y Rendimiento Ultra-Alto</h3>
+                            <p>Capacidad para procesar millones de mensajes por segundo con latencias de milisegundos gracias al uso óptimo del sistema de archivos del sistema operativo (Zero-Copy) y la escritura en disco de forma secuencial.</p>
+                        </div>
+                        <div class="box-item">
+                            <h3>📈 Escalabilidad Horizontal Real</h3>
+                            <p>Diseñado para distribuirse en clústeres masivos. Los tópicos se particionan y distribuyen a lo largo de diferentes servidores (Brokers), escalando linealmente la capacidad de lectura y escritura.</p>
+                        </div>
+                        <div class="box-item">
+                            <h3>💾 Durabilidad y Tolerancia a Fallos</h3>
+                            <p>Los datos persisten en disco de forma predeterminada y se replican en múltiples nodos. Si un servidor falla, otro asume de inmediato la partición (líder de réplica) sin pérdida de datos.</p>
+                        </div>
+                        <div class="box-item">
+                            <h3>🔄 Repetición de Eventos (Event Replay)</h3>
+                            <p>Dado que los datos no se destruyen al ser consumidos, cualquier servicio nuevo o existente puede retroceder en el tiempo y volver a leer la cinta de eventos desde cualquier offset histórico.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 7: DESVENTAJAS DE KAFKA -->
+            <div class="slide" data-topic="Desventajas de Kafka">
+                <div class="slide-full">
+                    <h2>Desventajas y Desafíos de Kafka</h2>
+                    <p style="margin-bottom: 32px;">No existe la bala de plata; estos son los trade-offs de implementar Apache Kafka.</p>
+                    
+                    <div class="box-grid" style="max-width: 1000px;">
+                        <div class="box-item negativo">
+                            <h3>⚙️ Complejidad de Operación</h3>
+                            <p>Configurar, monitorear y administrar un clúster de Kafka (incluyendo KRaft o ZooKeeper para coordination) requiere una curva de aprendizaje alta e ingenieros de infraestructura especializados.</p>
+                        </div>
+                        <div class="box-item negativo">
+                            <h3>🔒 Restricción de Orden Global</h3>
+                            <p>Kafka solo garantiza el orden secuencial de los mensajes dentro de una misma partición. Si tu aplicación requiere orden estricto de eventos a nivel global de un tópico, debes limitar el diseño a 1 sola partición.</p>
+                        </div>
+                        <div class="box-item negativo">
+                            <h3>📦 Alto Consumo de Recursos</h3>
+                            <p>Es un sistema pesado. Kafka requiere prealojar espacio en disco, consume considerables cantidades de RAM para las cachés de lectura, y genera un tráfico de red intenso debido a la replicación constante.</p>
+                        </div>
+                        <div class="box-item negativo">
+                            <h3>⏱️ Consistencia Eventual</h3>
+                            <p>Los microservicios deben diseñarse asumiendo consistencia eventual. Si una orden descuenta stock vía Kafka, el catálogo no se actualizará instantáneamente de forma síncrona en la base de datos central.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 8: KAFKA VS RABBITMQ -->
+            <div class="slide" data-topic="Kafka vs RabbitMQ">
+                <div class="slide-grid">
+                    <div>
+                        <h2>Kafka vs. RabbitMQ</h2>
+                        <p>
+                            Aunque ambos son brokers de mensajería, responden a filosofías arquitectónicas radicalmente distintas.
+                        </p>
+                        <p>
+                            <strong>RabbitMQ (Message Queue):</strong> Usa el patrón de "Broker Inteligente y Consumidor Simple". El broker decide la ruta exacta de los mensajes usando intercambios (Exchanges) y los entrega activamente a los consumidores. Una vez que el consumidor procesa y confirma, el mensaje se destruye.
+                        </p>
+                        <p>
+                            <strong>Kafka (Commit Log):</strong> Usa el patrón de "Broker Simple y Consumidor Inteligente". Kafka se limita a registrar mensajes secuenciales en disco sin preocuparse de quién los lee. Son los consumidores los encargados de llevar la cuenta de en qué offset se encuentran, jalando (pull) los mensajes a su propio ritmo.
+                        </p>
+                    </div>
+                    <div class="diagram-container">
+                        <!-- DIAGRAMA COMPARATIVO DE ARQUITECTURAS -->
+                        <svg width="100%" height="320" viewBox="0 0 500 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- RabbitMQ -->
+                            <rect x="20" y="20" width="210" height="280" rx="12" fill="rgba(236, 101, 81, 0.05)" stroke="#ec6551" stroke-width="2" />
+                            <text x="125" y="45" fill="#ec6551" font-family="Outfit" font-size="14" text-anchor="middle" font-weight="bold">RABBITMQ</text>
+                            
+                            <!-- Exchange -->
+                            <circle cx="125" cy="110" r="25" fill="rgba(236, 101, 81, 0.2)" stroke="#ec6551" stroke-width="1" />
+                            <text x="125" y="114" fill="#ffffff" font-family="Poppins" font-size="10" text-anchor="middle">Exchange</text>
+                            
+                            <!-- Queues -->
+                            <rect x="50" y="170" width="70" height="25" rx="4" fill="rgba(255,255,255,0.05)" stroke="#ffffff" stroke-width="1" />
+                            <text x="85" y="186" fill="#ffffff" font-family="Poppins" font-size="9" text-anchor="middle">Queue 1</text>
+                            
+                            <rect x="130" y="170" width="70" height="25" rx="4" fill="rgba(255,255,255,0.05)" stroke="#ffffff" stroke-width="1" />
+                            <text x="165" y="186" fill="#ffffff" font-family="Poppins" font-size="9" text-anchor="middle">Queue 2</text>
+                            
+                            <text x="125" y="235" fill="rgba(255,255,255,0.5)" font-family="Poppins" font-size="9" text-anchor="middle">Push: El Broker entrega</text>
+                            <text x="125" y="250" fill="rgba(255,255,255,0.5)" font-family="Poppins" font-size="9" text-anchor="middle">y borra tras ACK</text>
+                            
+                            <!-- Kafka -->
+                            <rect x="270" y="20" width="210" height="280" rx="12" fill="rgba(0, 219, 194, 0.05)" stroke="#00dbc2" stroke-width="2" />
+                            <text x="375" y="45" fill="#00dbc2" font-family="Outfit" font-size="14" text-anchor="middle" font-weight="bold">KAFKA</text>
+                            
+                            <!-- Log -->
+                            <rect x="290" y="80" width="170" height="80" rx="8" fill="rgba(24, 64, 244, 0.1)" stroke="#1840f4" stroke-width="1" />
+                            <text x="375" y="100" fill="#ffffff" font-family="Poppins" font-size="11" text-anchor="middle" font-weight="bold">Log Particionado</text>
+                            
+                            <!-- Partitions -->
+                            <rect x="300" y="115" width="150" height="15" rx="2" fill="rgba(0, 219, 194, 0.15)" stroke="#00dbc2" />
+                            <text x="375" y="126" fill="#ffffff" font-family="Poppins" font-size="8" text-anchor="middle">Partition 0 [Secuencial]</text>
+                            
+                            <rect x="300" y="135" width="150" height="15" rx="2" fill="rgba(0, 219, 194, 0.15)" stroke="#00dbc2" />
+                            <text x="375" y="146" fill="#ffffff" font-family="Poppins" font-size="8" text-anchor="middle">Partition 1 [Secuencial]</text>
+                            
+                            <text x="375" y="235" fill="rgba(255,255,255,0.5)" font-family="Poppins" font-size="9" text-anchor="middle">Pull: El Cliente jala</text>
+                            <text x="375" y="250" fill="rgba(255,255,255,0.5)" font-family="Poppins" font-size="9" text-anchor="middle">y el Log es Persistente</text>
+                            
+                            <!-- Flujo general -->
+                            <path d="M125 135 V 170" stroke="#ec6551" stroke-width="1.5" />
+                            <path d="M125 135 L 85 170" stroke="#ec6551" stroke-width="1.5" />
+                            <path d="M125 135 L 165 170" stroke="#ec6551" stroke-width="1.5" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 9: TABLA COMPARATIVA -->
+            <div class="slide" data-topic="Comparación Técnica">
+                <div class="slide-full">
+                    <h2>Comparativa Técnica Resumida</h2>
+                    <p style="margin-bottom: 20px;">Parámetros clave de decisión entre Kafka y RabbitMQ.</p>
+                    
+                    <div class="glass-card" style="width: 100%; max-width: 1000px; padding: 20px;">
+                        <table class="premium-table">
+                            <thead>
+                                <tr>
+                                    <th>Criterio</th>
+                                    <th>RabbitMQ</th>
+                                    <th>Apache Kafka</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Rendimiento (Throughput)</strong></td>
+                                    <td>Medio (4k - 10k mensajes/segundo)</td>
+                                    <td><span class="highlight">Ultra Alto (1 millón+ mensajes/segundo)</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Modelo de Consumo</strong></td>
+                                    <td>Push (El broker empuja hacia el cliente)</td>
+                                    <td><span class="highlight-blue">Pull (El cliente jala eventos a su propio ritmo)</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Duración del Mensaje</strong></td>
+                                    <td>Efímero (Se borra tras ser consumido/ACK)</td>
+                                    <td><span class="highlight">Persistente (Retenido según políticas de tiempo/tamaño)</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Capacidades de Enrutamiento</strong></td>
+                                    <td><span class="highlight">Complejo y Flexible (Exchanges: Direct, Fanout, Topic)</span></td>
+                                    <td>Básico (El cliente lee del tópico/partición)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Garantía de Orden</strong></td>
+                                    <td>No garantizado si hay múltiples consumidores compitiendo</td>
+                                    <td><span class="highlight-blue">Garantizado a nivel de Partición</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Replay (Relectura de datos)</strong></td>
+                                    <td>No soportado de manera nativa</td>
+                                    <td><span class="highlight">Soportado totalmente (Event Replay)</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 10: CONCLUSIONES Y DECISIONES -->
+            <div class="slide" data-topic="Conclusión y Decisiones">
+                <div class="slide-full">
+                    <h2>Criterio de Elección: ¿Cuándo usar cuál?</h2>
+                    <p style="margin-bottom: 32px;">Regla práctica de arquitectura para proyectos de ingeniería y ciencia de datos.</p>
+                    
+                    <div class="slide-grid" style="max-width: 1000px; text-align: left;">
+                        <div class="glass-card" style="border-left: 5px solid var(--color-mint);">
+                            <h3 style="font-family: var(--font-title); font-size: 1.5rem; margin-bottom: 12px; color: var(--color-mint);">Elige APACHE KAFKA si necesitas:</h3>
+                            <ul class="premium-list">
+                                <li><strong>Pipelines de Big Data:</strong> Procesamiento analítico masivo en tiempo real (métrica web, IoT, telemetría).</li>
+                                <li><strong>Event Sourcing:</strong> Recrear estados pasados reproduciendo todo el log de eventos.</li>
+                                <li><strong>Buses de Microservicios Distribuidos:</strong> Arquitecturas reactivas de alta concurrencia que requieran paralelismo escalable.</li>
+                                <li><strong>Consistencia del Log:</strong> Múltiples aplicaciones independientes leyendo el mismo stream histórico de eventos.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="glass-card" style="border-left: 5px solid var(--color-peach);">
+                            <h3 style="font-family: var(--font-title); font-size: 1.5rem; margin-bottom: 12px; color: var(--color-peach);">Elige RABBITMQ si necesitas:</h3>
+                            <ul class="premium-list">
+                                <li><strong>Colas de Tareas Simples:</strong> Distribución y procesamiento de tareas en segundo plano (Worker patterns).</li>
+                                <li><strong>Ruteo Complejo:</strong> Mensajes enrutados dinámicamente según encabezados o patrones complejos de tópicos AMQP.</li>
+                                <li><strong>Request-Response Asíncrono:</strong> Implementación de comunicación bidireccional ágil sin persistencia histórica.</li>
+                                <li><strong>Operación Sencilla:</strong> Equipos pequeños que requieran configuraciones directas e integraciones rápidas.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <p style="margin-top: 32px; font-size: 0.95rem; color: var(--color-gray-dark);">
+                        Proyecto desarrollado bajo los lineamientos académicos de la Escuela de Ingeniería <span class="highlight">STEAM School - Universidad EIA</span>
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Controles de Navegación -->
+    <footer>
+        <div class="keyboard-hint">
+            <span class="key-cap">←</span>
+            <span class="key-cap">→</span>
+            <span class="key-cap">Espacio</span>
+            <span>para navegar</span>
+        </div>
+        
+        <div class="slide-counter">
+            Diapositiva <span id="currentSlideNum">1</span> de <span id="totalSlidesNum">10</span>
+        </div>
+        
+        <div class="controls">
+            <button class="btn-nav" id="btnPrev" disabled aria-label="Anterior">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </button>
+            <button class="btn-nav" id="btnNext" aria-label="Siguiente">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </button>
+        </div>
+    </footer>
+
+    <!-- Lógica de Navegación de Presentación -->
+    <script>
+        // Selección de elementos de la presentación
+        const slides = document.querySelectorAll('.slide');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+        const currentSlideNum = document.getElementById('currentSlideNum');
+        const totalSlidesNum = document.getElementById('totalSlidesNum');
+        const progressBar = document.getElementById('progressBar');
+        const currentTopic = document.getElementById('currentTopic');
+        
+        let currentSlideIndex = 0;
+        const totalSlides = slides.length;
+        
+        // Inicializar número total en el footer
+        totalSlidesNum.textContent = totalSlides;
+
+        // Actualizar UI de Diapositiva
+        function updateSlideUI() {
+            slides.forEach((slide, index) => {
+                if (index === currentSlideIndex) {
+                    slide.classList.add('active');
+                    currentTopic.textContent = slide.getAttribute('data-topic');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            btnPrev.disabled = currentSlideIndex === 0;
+            btnNext.disabled = currentSlideIndex === totalSlides - 1;
+            currentSlideNum.textContent = currentSlideIndex + 1;
+
+            const progressPercentage = ((currentSlideIndex) / (totalSlides - 1)) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+        }
+
+        function nextSlide() {
+            if (currentSlideIndex < totalSlides - 1) {
+                currentSlideIndex++;
+                updateSlideUI();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                updateSlideUI();
+            }
+        }
+
+        btnNext.addEventListener('click', nextSlide);
+        btnPrev.addEventListener('click', prevSlide);
+
+        // Control por teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                currentSlideIndex = 0;
+                updateSlideUI();
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                currentSlideIndex = totalSlides - 1;
+                updateSlideUI();
+            }
+        });
+
+        // Swipe
+        let touchstartX = 0;
+        let touchendX = 0;
+        document.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
+        document.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            if (touchendX < touchstartX - 50) nextSlide();
+            if (touchendX > touchstartX + 50) prevSlide();
+        });
+
+        // ==========================================================================
+        // LÓGICA DEL SIMULADOR INTERACTIVO (SLIDE 5)
+        // ==========================================================================
+        const btnSimOrder = document.getElementById('btnSimOrder');
+        const btnSimProduct = document.getElementById('btnSimProduct');
+        const orderConsole = document.getElementById('orderConsole');
+        const productConsole = document.getElementById('productConsole');
+        const jsonViewer = document.getElementById('jsonViewer');
+        
+        const partOrderCell = document.getElementById('partOrder0');
+        const partProductCell = document.getElementById('partProduct0');
+        const offsetOrderText = document.getElementById('offsetOrder');
+        const offsetProductText = document.getElementById('offsetProduct');
+        
+        const simPacket = document.getElementById('simPacket');
+        
+        let countOrderOffsets = 0;
+        let countProductOffsets = 0;
+
+        // Simular Crear Orden (Order -> Kafka -> Product)
+        btnSimOrder.addEventListener('click', () => {
+            // Deshabilitar botones temporalmente
+            btnSimOrder.disabled = true;
+            btnSimProduct.disabled = true;
+
+            // Datos dinámicos de la simulación
+            const orderNum = "ORD-" + Math.floor(Math.random() * 9000 + 1000);
+            const qty = Math.floor(Math.random() * 5 + 1);
+            const price = parseFloat((qty * 39.99).toFixed(2));
+            const productId = "PROD-102";
+
+            // 1. Mostrar en Consola Origen
+            orderConsole.innerHTML += `<br><span style="color:#ffbc7d">[INFO] Creando orden ${orderNum} para producto ${productId}...</span>`;
+            orderConsole.scrollTop = orderConsole.scrollHeight;
+
+            // 2. Animar envío del paquete
+            simPacket.className = "sim-packet packet-orange";
+            simPacket.style.animation = "sendOrder 1.2s forwards";
+            
+            setTimeout(() => {
+                // 3. Llega a Kafka (Actualiza Offset y JSON)
+                countOrderOffsets++;
+                offsetOrderText.textContent = `Offset: ${countOrderOffsets}`;
+                
+                partOrderCell.classList.add('active-p');
+                partOrderCell.textContent = `Off ${countOrderOffsets}`;
+                
+                const eventPayload = {
+                    "id": countOrderOffsets,
+                    "orderNumber": orderNum,
+                    "productId": productId,
+                    "quantity": qty,
+                    "totalPrice": price
+                };
+                
+                jsonViewer.textContent = JSON.stringify(eventPayload, null, 2);
+                orderConsole.innerHTML += `<br><span style="color:#00dbc2">[INFO] Evento order.created enviado con éxito.</span>`;
+                orderConsole.scrollTop = orderConsole.scrollHeight;
+
+                // 4. Animar entrega del paquete desde Kafka a Destino
+                simPacket.style.animation = "receiveOrder 1.2s forwards";
+                
+                setTimeout(() => {
+                    // 5. Consumidor recibe el mensaje
+                    productConsole.innerHTML += `<br><span style="color:#fff">[INFO] Evento recibido: OrderCreatedEvent - Orden: ${orderNum}</span>`;
+                    productConsole.innerHTML += `<br><span style="color:#21b8d2">→ Actualizando stock del producto ${productId}: Restando -${qty} unidades.</span>`;
+                    productConsole.innerHTML += `<br><span style="color:#a8ffb2">[INFO] Stock actualizado exitosamente en base de datos.</span>`;
+                    productConsole.scrollTop = productConsole.scrollHeight;
+
+                    // Limpiar clases
+                    setTimeout(() => {
+                        partOrderCell.classList.remove('active-p');
+                        btnSimOrder.disabled = false;
+                        btnSimProduct.disabled = false;
+                    }, 800);
+
+                }, 1200);
+
+            }, 1200);
+        });
+
+        // Simular Crear Producto (Product -> Kafka -> Order)
+        btnSimProduct.addEventListener('click', () => {
+            btnSimOrder.disabled = true;
+            btnSimProduct.disabled = true;
+
+            const prodId = "PROD-" + Math.floor(Math.random() * 900 + 100);
+            const names = ["Silla Ergonómica", "Monitor 4K", "Teclado Mecánico", "Ratón Gaming"];
+            const prodName = names[Math.floor(Math.random() * names.length)];
+            const price = parseFloat((Math.random() * 500 + 50).toFixed(2));
+            const qty = Math.floor(Math.random() * 100 + 10);
+
+            // 1. Mostrar en Consola Origen
+            productConsole.innerHTML += `<br><span style="color:#21b8d2">[INFO] Registrando nuevo producto: ${prodName} (ID: ${prodId})...</span>`;
+            productConsole.scrollTop = productConsole.scrollHeight;
+
+            // 2. Animar envío
+            simPacket.className = "sim-packet packet-mint";
+            simPacket.style.animation = "sendProduct 1.2s forwards";
+
+            setTimeout(() => {
+                // 3. Llega a Kafka
+                countProductOffsets++;
+                offsetProductText.textContent = `Offset: ${countProductOffsets}`;
+                
+                partProductCell.classList.add('active-p');
+                partProductCell.textContent = `Off ${countProductOffsets}`;
+
+                const eventPayload = {
+                    "id": prodId,
+                    "name": prodName,
+                    "description": "Producto importado premium",
+                    "price": price,
+                    "quantity": qty,
+                    "category": "Tecnología"
+                };
+
+                jsonViewer.textContent = JSON.stringify(eventPayload, null, 2);
+                productConsole.innerHTML += `<br><span style="color:#00dbc2">[INFO] Evento product.created enviado con éxito.</span>`;
+                productConsole.scrollTop = productConsole.scrollHeight;
+
+                // 4. Recibe Order
+                simPacket.style.animation = "receiveProduct 1.2s forwards";
+
+                setTimeout(() => {
+                    // 5. Consumidor de órdenes procesa
+                    orderConsole.innerHTML += `<br><span style="color:#fff">[INFO] Evento recibido: ProductCreatedEvent - ID: ${prodId}, Nombre: ${prodName}</span>`;
+                    orderConsole.innerHTML += `<br><span style="color:#21b8d2">→ Sincronizando catálogo en base de datos local (Read Replica)...</span>`;
+                    orderConsole.innerHTML += `<br><span style="color:#a8ffb2">[INFO] Réplica de catálogo sincronizada.</span>`;
+                    orderConsole.scrollTop = orderConsole.scrollHeight;
+
+                    setTimeout(() => {
+                        partProductCell.classList.remove('active-p');
+                        btnSimOrder.disabled = false;
+                        btnSimProduct.disabled = false;
+                    }, 800);
+
+                }, 1200);
+
+            }, 1200);
+        });
+
+        // Inicialización
+        updateSlideUI();
+    </script>
+</body>
+</html>

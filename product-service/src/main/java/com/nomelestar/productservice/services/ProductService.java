@@ -18,6 +18,7 @@ import java.util.List;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    // Plantilla de Kafka inyectada para publicar eventos relativos al catálogo de productos.
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     private void productDTOtoEntity(Product product, ProductRequest dto) {
@@ -69,10 +70,12 @@ public class ProductService {
     }
 
     public ProductResponse save(ProductRequest request) {
+        // Guardamos el nuevo producto en la base de datos local de productos
         Product product = new Product();
         productDTOtoEntity(product, request);
         Product savedProduct = productRepository.save(product);
 
+        // Construimos el evento de creación
         com.nomelestar.productservice.events.ProductCreatedEvent event = com.nomelestar.productservice.events.ProductCreatedEvent
                 .builder()
                 .id(savedProduct.getId())
@@ -83,20 +86,26 @@ public class ProductService {
                 .category(savedProduct.getCategory())
                 .build();
 
+        // Enviamos el evento de creación de producto al tópico de Kafka
+        // - Tópico: "product.created"
+        // - Clave de particionado: el ID del producto (para mantener el orden de operaciones sobre el mismo producto)
+        // - Payload: el DTO de evento de producto creado
         kafkaTemplate.send(
                 com.nomelestar.productservice.config.KafkaConfig.TOPIC_NAME,
-                event.getId(), // Use product ID as the Kafka partitioning key
+                event.getId(), 
                 event);
 
         return mapToResponse(savedProduct);
     }
 
     public ProductResponse update(String id, ProductRequest request) {
+        // Buscamos y actualizamos el producto en la base de datos local
         Product product = productRepository.findByIdAndActiveTrue(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
         productDTOtoEntity(product, request);
         Product updatedProduct = productRepository.save(product);
 
+        // Construimos el evento de actualización
         com.nomelestar.productservice.events.ProductUpdatedEvent event = com.nomelestar.productservice.events.ProductUpdatedEvent
                 .builder()
                 .id(updatedProduct.getId())
@@ -107,6 +116,7 @@ public class ProductService {
                 .category(updatedProduct.getCategory())
                 .build();
 
+        // Enviamos el evento al tópico correspondiente ("product.updated")
         kafkaTemplate.send(
                 com.nomelestar.productservice.config.KafkaConfig.UPDATED_TOPIC_NAME,
                 event.getId(),
@@ -116,6 +126,7 @@ public class ProductService {
     }
 
     public void updateQuantity(String id, Integer quantity) {
+        // Disminuimos el stock disponible del producto debido a una orden
         Product product = productRepository.findByIdAndActiveTrue(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
         if (product.getQuantity() < quantity) {
@@ -124,6 +135,7 @@ public class ProductService {
         product.setQuantity(product.getQuantity() - quantity);
         Product updatedProduct = productRepository.save(product);
 
+        // Construimos el evento notificando la actualización de las propiedades del producto (especialmente la nueva cantidad)
         com.nomelestar.productservice.events.ProductUpdatedEvent event = com.nomelestar.productservice.events.ProductUpdatedEvent
                 .builder()
                 .id(updatedProduct.getId())
@@ -134,6 +146,7 @@ public class ProductService {
                 .category(updatedProduct.getCategory())
                 .build();
 
+        // Publicamos la actualización del stock para informar asíncronamente a los demás sistemas
         kafkaTemplate.send(
                 com.nomelestar.productservice.config.KafkaConfig.UPDATED_TOPIC_NAME,
                 event.getId(),

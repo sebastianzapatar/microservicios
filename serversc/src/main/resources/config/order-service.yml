@@ -15,6 +15,16 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  
+  # Configuración del broker de mensajería RabbitMQ
+  rabbitmq:
+    # Host de RabbitMQ: usa la variable expuesta por Docker Compose, o localhost en desarrollo
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    # Puerto AMQP estándar
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    # Credenciales de acceso predeterminadas
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
 
 eureka:
   client:

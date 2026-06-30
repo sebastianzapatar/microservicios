@@ -68,11 +68,18 @@ public class ProductService {
         return mapToResponse(p1);
     }
 
+    /**
+     * Registra un nuevo producto en la base de datos local y publica un evento en RabbitMQ.
+     * 
+     * @param request DTO con la información del producto a registrar.
+     * @return DTO con la información del producto guardado.
+     */
     public ProductResponse save(ProductRequest request) {
         Product product = new Product();
         productDTOtoEntity(product, request);
         Product savedProduct = productRepository.save(product);
 
+        // Construir el evento de creación de producto
         com.nomelestar.productservice.events.ProductCreatedEvent event = com.nomelestar.productservice.events.ProductCreatedEvent
                 .builder()
                 .id(savedProduct.getId())
@@ -83,6 +90,7 @@ public class ProductService {
                 .category(savedProduct.getCategory())
                 .build();
 
+        // Enviar el evento al Exchange de RabbitMQ con la clave de enrutamiento configurada
         rabbitTemplate.convertAndSend(
                 com.nomelestar.productservice.config.RabbitMQConfig.EXCHANGE_NAME,
                 com.nomelestar.productservice.config.RabbitMQConfig.ROUTING_KEY,
@@ -91,19 +99,26 @@ public class ProductService {
         return mapToResponse(savedProduct);
     }
 
+    /**
+     * Actualiza la información de un producto existente.
+     */
     public ProductResponse update(String id, ProductRequest request) {
         Product product = productRepository.findByIdAndActiveTrue(id).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Producto no encontrado"));
         productDTOtoEntity(product, request);
         Product updatedProduct = productRepository.save(product);
         return mapToResponse(updatedProduct);
     }
 
+    /**
+     * Disminuye la cantidad física de inventario para un producto debido a una orden procesada.
+     * Método invocado por el listener asíncrono.
+     */
     public void updateQuantity(String id, Integer quantity) {
         Product product = productRepository.findByIdAndActiveTrue(id).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Producto no encontrado"));
         if (product.getQuantity() < quantity) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient product quantity");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Stock insuficiente en el catálogo de productos");
         }
         product.setQuantity(product.getQuantity() - quantity);
         productRepository.save(product);
